@@ -54,4 +54,3 @@ it('switches to Amharic without losing input and persists locale', async () => {
   expect(screen.getByLabelText('የይለፍ ቃል', { exact: true })).toHaveValue('retain-this')
   expect(screen.getByRole('button', { name: 'የይለፍ ቃሉን ደብቅ' })).toHaveAttribute('aria-pressed', 'true')
 })
-
