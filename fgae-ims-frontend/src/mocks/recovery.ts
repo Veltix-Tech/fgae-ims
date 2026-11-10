@@ -1,3 +1,4 @@
+import { issueRecoveryLink } from './credentials'
 import { RecoveryError, validRecoveryEmail, type RecoveryRequest, type RecoveryReceipt, type RecoveryService } from '../services/contracts/recovery'
 import { receiptStore } from '../services/adapters/recovery-receipt'
 
@@ -29,16 +30,18 @@ export const recoveryService: RecoveryService = {
     const previous = journal.find(item => item.idempotencyKey === input.idempotencyKey)
     if (previous) {
       if (previous.email !== input.email.trim()) throw new RecoveryError('UNAVAILABLE')
+      await issueRecoveryLink(previous.email, input.idempotencyKey)
       receipts.save(previous.receipt)
       return previous.receipt
     }
     const latest = journal.at(-1)?.receipt
     if (latest && latest.retryAt > Date.now()) throw new RecoveryError('RATE_LIMITED', Math.ceil((latest.retryAt - Date.now()) / 1000))
-    // No account lookup: known, unknown, inactive and pending addresses have identical public outcomes.
-    // This records a synthetic recovery intent; real token issuance and email delivery require C-AUTH-05.
+    // Public outcomes remain identical; only the synthetic delivery store knows eligible accounts.
     const receipt = { email: input.email.trim(), acceptedAt: Date.now(), retryAt: Date.now() + 60_000 }
     const next = [...journal.slice(-19), { ...input, email: receipt.email, receipt }]
     try { sessionStorage.setItem(JOURNAL, JSON.stringify({ version: 1, requests: next })) }
+    catch { throw new RecoveryError('STORAGE_UNAVAILABLE') }
+    try { await issueRecoveryLink(receipt.email, input.idempotencyKey) }
     catch { throw new RecoveryError('STORAGE_UNAVAILABLE') }
     receipts.save(receipt)
     return receipt

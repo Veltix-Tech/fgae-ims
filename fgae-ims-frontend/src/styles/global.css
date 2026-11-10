@@ -105,6 +105,13 @@ h1:focus { outline: none; }
 .secondary:hover:not(:disabled) { background: var(--pale-sky); }
 .recovery-change { width: 100%; margin-top: 14px; }
 .recovery .primary:disabled:not([aria-busy='true']) { cursor: default; }
+.reset-check { display: flex; align-items: center; gap: 12px; padding: 25px 0; color: var(--muted); }
+.action-link { text-decoration: none; }
+.leave-confirmation { padding: 18px; margin-bottom: 24px; border: 1px solid var(--control-border); border-radius: var(--radius); background: var(--surface); }
+.leave-confirmation h2 { font-size: 15px; margin-bottom: 8px; }
+.leave-confirmation p { color: var(--muted); font-size: 12px; }
+.leave-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.reset-password .field-hint { font-size: 12px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (min-width: 1500px) { .auth-layout { max-height: 900px; } }
 @media (max-width: 1050px) { .auth-layout { width: 92%; grid-template-columns: 45% 55%; } .welcome-panel { padding: 32px 26px; } .welcome-panel h2 { font-size: 32px; } .form-panel { padding-left: 32px; } }
