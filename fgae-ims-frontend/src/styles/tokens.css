@@ -1,0 +1,13 @@
+:root {
+  --canvas: #F7FBFE;
+  --surface: #FFFFFF;
+  --pale-sky: #EAF5FC;
+  --sky: #38BDF8;
+  --action: #0369A1;
+  --ink: #102A43;
+  --muted: #526575;
+  --divider: #D9E7EF;
+  --control-border: #8295A5;
+  --danger: #A12525;
+  --radius: 8px;
+}
