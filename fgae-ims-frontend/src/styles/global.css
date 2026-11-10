@@ -89,6 +89,22 @@ h1:focus { outline: none; }
 .account-summary p, .role-list p { color: var(--muted); }
 .small-label { display: block; color: var(--muted); font-size: 11px; margin-bottom: 4px; }
 .role-list { margin-bottom: 28px; }
+.text-link { color: var(--action); font-size: 12px; font-weight: 600; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.text-link:hover { color: #075985; text-decoration-thickness: 2px; }
+.forgot-link { text-align: center; margin-top: 17px; }
+.back-link { display: inline-flex; gap: 8px; align-items: center; margin-bottom: 26px; text-decoration: none; min-height: 28px; }
+.back-link:hover { text-decoration: underline; }
+.recovery-icon { display: grid; place-items: center; width: 54px; height: 54px; background: var(--pale-sky); color: var(--action); border: 1px solid var(--divider); border-radius: 12px; margin-bottom: 22px; }
+.recovery h1 { font-size: 30px; }
+.recovery-privacy, .recovery-cooldown { font-size: 11px; color: var(--muted); line-height: 1.8; margin-top: 16px; }
+.recovery-cooldown { text-align: center; }
+.recovery-address { border-left: 3px solid var(--sky); padding: 8px 16px; margin-bottom: 20px; overflow-wrap: anywhere; }
+.recovery-address strong { font-size: 14px; font-weight: 600; }
+.recovery-inbox { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+.secondary { display: flex; align-items: center; justify-content: center; min-height: 46px; border: 1px solid var(--control-border); border-radius: var(--radius); background: var(--surface); color: var(--action); font-weight: 600; font-size: 12px; padding: 10px 16px; }
+.secondary:hover:not(:disabled) { background: var(--pale-sky); }
+.recovery-change { width: 100%; margin-top: 14px; }
+.recovery .primary:disabled:not([aria-busy='true']) { cursor: default; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (min-width: 1500px) { .auth-layout { max-height: 900px; } }
 @media (max-width: 1050px) { .auth-layout { width: 92%; grid-template-columns: 45% 55%; } .welcome-panel { padding: 32px 26px; } .welcome-panel h2 { font-size: 32px; } .form-panel { padding-left: 32px; } }

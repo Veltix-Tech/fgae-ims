@@ -7,7 +7,8 @@ import { LocaleProvider } from './i18n/locale'
 import './styles/global.css'
 import './styles/motion.css'
 
-// AUTH-01 is the only implemented route. Future pages are not rendered as placeholders.
-const protectedEntry = !['/', '/sign-in'].includes(window.location.pathname)
-if (window.location.pathname !== '/sign-in') history.replaceState(null, '', '/sign-in')
-createRoot(document.getElementById('root')!).render(<StrictMode><LocaleProvider><App protectedEntry={protectedEntry} /></LocaleProvider></StrictMode>)
+// Only reviewed/current pages are routed; future destinations have no placeholder UI.
+const page = window.location.pathname === '/forgot-password' ? 'recovery' : 'sign-in'
+const protectedEntry = !['/', '/sign-in', '/forgot-password'].includes(window.location.pathname)
+if (page === 'sign-in' && window.location.pathname !== '/sign-in') history.replaceState(null, '', '/sign-in')
+createRoot(document.getElementById('root')!).render(<StrictMode><LocaleProvider><App page={page} protectedEntry={protectedEntry} /></LocaleProvider></StrictMode>)

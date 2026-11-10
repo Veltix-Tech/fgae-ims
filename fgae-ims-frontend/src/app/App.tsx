@@ -2,11 +2,12 @@ import { ClipboardTextIcon, UsersThreeIcon, HandshakeIcon } from '@phosphor-icon
 import { useLocale } from '../i18n/locale'
 import { SignIn } from '../features/auth/SignIn'
 import { LanguageSelector } from '../components/LanguageSelector'
+import { ForgotPassword } from '../features/auth/ForgotPassword'
 
-export function App({ protectedEntry = false }: { protectedEntry?: boolean }) {
+export function App({ protectedEntry = false, page = 'sign-in' }: { protectedEntry?: boolean; page?: 'sign-in' | 'recovery' }) {
   const { t } = useLocale()
   return <>
-    <a className="skip-link" href="#sign-in-heading">{t('skip')}</a>
+    <a className="skip-link" href={page === 'recovery' ? '#recovery-heading' : '#sign-in-heading'}>{t(page === 'recovery' ? 'recoverySkip' : 'skip')}</a>
     <header className="site-header motion-enter">
       <div className="brand"><img src="/brand/mark.svg" width="46" height="46" alt="" /><div><span className="wordmark">FGAE<span className="wordmark-divider">/</span><span className="ims">IMS</span></span><p>{t('organization')}</p></div></div>
       <LanguageSelector />
@@ -23,7 +24,7 @@ export function App({ protectedEntry = false }: { protectedEntry?: boolean }) {
         </ul>
         <div className="panel-bottom"><span className="blue-line" aria-hidden="true" /><p>{t('internal')}</p></div>
       </section>
-      <div className="form-panel motion-enter"><SignIn protectedEntry={protectedEntry} /></div>
+      <div className="form-panel motion-enter">{page === 'recovery' ? <ForgotPassword /> : <SignIn protectedEntry={protectedEntry} />}</div>
     </main>
     <footer className="site-footer"><span>{t('footer')}</span><span>{t('footerNote')}</span></footer>
   </>

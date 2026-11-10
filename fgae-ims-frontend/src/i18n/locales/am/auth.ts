@@ -1,5 +1,17 @@
 import type { TranslationKey } from '../en/auth'
 export const am: Record<TranslationKey, string> = {
+  forgotPassword: 'የይለፍ ቃልዎን ረሱ?', recoveryTitle: 'የይለፍ ቃል መመለሻ · FGAE IMS', recoverySkip: 'ወደ የይለፍ ቃል መመለሻ ይሂዱ',
+  recoveryEyebrow: 'የመለያ መዳረሻ', recoveryHeading: 'የይለፍ ቃልዎን ረሱ?',
+  recoveryIntro: 'የይለፍ ቃል መቀየሪያ አገናኝ ለመጠየቅ ለማህበሩ መለያዎ የሚጠቀሙበትን የኢሜይል አድራሻ ያስገቡ.',
+  recoverySubmit: 'መቀየሪያ አገናኝ ጠይቅ', recoverySubmitting: 'አገናኝ በመጠየቅ ላይ…', recoveryBack: 'ወደ መግቢያ ተመለስ',
+  recoveryPrivacy: 'ግላዊነትዎን ለመጠበቅ የኢሜይል አድራሻው መለያ እንዳለው አናረጋግጥም.',
+  recoveryReceived: 'ጥያቄዎ ደርሷል', recoveryConfirmation: 'ይህን አድራሻ የሚጠቀም ብቁ መለያ ካለ፣ የይለፍ ቃልዎን ለመቀየር መመሪያ ያለው ኢሜይል ይደርስዎታል.',
+  recoveryEmailLabel: 'ያስገቡት ኢሜይል', recoveryInbox: 'የገቢ መልዕክቶችን እና የአይፈለጌ መልዕክቶችን አቃፊ ይመልከቱ. መልዕክቱ ለመድረስ ጥቂት ደቂቃዎች ሊወስድ ይችላል.',
+  recoveryResend: 'ሌላ አገናኝ ጠይቅ', recoveryChange: 'ሌላ ኢሜይል ተጠቀም', recoveryCooldown: 'ከ{seconds} ሰከንዶች በኋላ ሌላ አገናኝ መጠየቅ ይችላሉ.',
+  recoveryReady: 'አሁን ሌላ አገናኝ መጠየቅ ይችላሉ.', recoveryErrorTitle: 'ጥያቄዎን ማጠናቀቅ አልቻልንም',
+  recoveryUnavailable: 'የይለፍ ቃል መመለሻው ለጊዜው አይገኝም. እባክዎ ከጥቂት ጊዜ በኋላ ይሞክሩ.',
+  recoveryStorage: 'አሳሽዎ ጥያቄውን ማስቀመጥ አልቻለም. የድረ ገጽ ማከማቻን ፈቅደው እንደገና ይሞክሩ.',
+  recoveryHelpHeading: 'ይህን ኢሜይል መጠቀም አይችሉም?', recoveryHelp: 'ወደ መለያዎ እንደገና ለመግባት እርዳታ ከፈለጉ የማህበሩን አስተዳዳሪ ያነጋግሩ.',
   organization: 'የኢትዮጵያ ቤተሰብ መምሪያ ማህበር', system: 'የተቀናጀ አስተዳደር ሥርዓት',
   language: 'ቋንቋ', english: 'English', amharic: 'አማርኛ', skip: 'ወደ መግቢያ ይሂዱ',
   eyebrow: 'ሰዎቻችን. ዓላማችን.', headline: 'የተቀናጀ ሥራ.\nጠንካራ ማህበረሰብ.',
