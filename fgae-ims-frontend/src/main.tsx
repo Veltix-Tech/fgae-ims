@@ -5,6 +5,7 @@ import '@fontsource-variable/noto-sans-ethiopic/wght.css'
 import { App } from './app/App'
 import { LocaleProvider } from './i18n/locale'
 import './styles/global.css'
+import './styles/motion.css'
 
 // AUTH-01 is the only implemented route. Future pages are not rendered as placeholders.
 const protectedEntry = !['/', '/sign-in'].includes(window.location.pathname)

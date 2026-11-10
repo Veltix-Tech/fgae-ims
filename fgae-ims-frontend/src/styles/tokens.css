@@ -10,4 +10,9 @@
   --control-border: #8295A5;
   --danger: #A12525;
   --radius: 8px;
+  --motion-fast: 140ms;
+  --motion-state: 220ms;
+  --motion-enter: 420ms;
+  --motion-ripple: 560ms;
+  --ease-out: cubic-bezier(.2, .75, .25, 1);
 }

@@ -1,3 +1,4 @@
+import { Button } from '../../components/Button'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ArrowRightIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon, InfoIcon, SignOutIcon, WarningCircleIcon } from '@phosphor-icons/react'
 import { authService } from '@auth-adapter'
@@ -125,7 +126,7 @@ export function SignIn({ service = authService, protectedEntry = false }: { serv
         <CheckCircleIcon size={26} aria-hidden="true" /><div><span className="small-label">{t('accountLabel')}</span><strong>{identity.name}</strong><p>{identity.email}</p></div>
       </div>
       {identity.grants.length > 0 && <div className="role-list"><span className="small-label">{t('rolesLabel')}</span><p>{[...new Set(identity.grants.map(g => g.role))].map(role => t(role)).join(' · ')}</p></div>}
-      <button className="primary" disabled={busy === 'logout'} onClick={() => void signOut()}>{t(busy === 'logout' ? 'signingOut' : 'signOut')}<SignOutIcon size={20} aria-hidden="true" /></button>
+      <Button className="primary" disabled={busy === 'logout'} onClick={() => void signOut()}>{t(busy === 'logout' ? 'signingOut' : 'signOut')}<SignOutIcon size={20} aria-hidden="true" /></Button>
     </div> : <form onSubmit={event => void submit(event)} noValidate aria-busy={busy === 'login'}>
       {protectedEntry && !error && <p className="entry-notice">{t('sessionNotice')}</p>}
       <div className="field">
@@ -141,15 +142,15 @@ export function SignIn({ service = authService, protectedEntry = false }: { serv
           <input ref={passwordRef} id="password" name="password" type={revealed ? 'text' : 'password'} autoComplete="current-password" required
             value={password} onChange={event => { setPassword(event.target.value); setFields(old => ({ ...old, password: undefined })) }}
             placeholder={t('passwordPlaceholder')} aria-invalid={!!fields.password} aria-describedby={fields.password ? 'password-error' : undefined} readOnly={busy === 'login'} />
-          <button type="button" className="reveal" aria-label={t(revealed ? 'hidePassword' : 'showPassword')} aria-pressed={revealed} onClick={() => setRevealed(!revealed)}>
+          <Button type="button" className="reveal" aria-label={t(revealed ? 'hidePassword' : 'showPassword')} aria-pressed={revealed} onClick={() => setRevealed(!revealed)}>
             {revealed ? <EyeSlashIcon size={22} aria-hidden="true" /> : <EyeIcon size={22} aria-hidden="true" />}
-          </button>
+          </Button>
         </div>
         {fields.password && <p id="password-error" className="field-error">{t(fields.password)}</p>}
       </div>
-      <button type="submit" className="primary" disabled={busy === 'login'}>
+      <Button type="submit" className="primary" disabled={busy === 'login'}>
         {t(busy === 'login' ? 'signingIn' : 'signIn')}{busy === 'login' ? <span className="spinner" aria-hidden="true" /> : <ArrowRightIcon size={20} aria-hidden="true" />}
-      </button>
+      </Button>
       <span className="sr-only" role="status">{busy === 'login' ? t('signingIn') : ''}</span>
     </form>}
     <aside className="account-help" aria-label={t('helpTitle')}><InfoIcon size={21} aria-hidden="true" /><div><h2>{t('helpTitle')}</h2><p>{t('help')}</p></div></aside>

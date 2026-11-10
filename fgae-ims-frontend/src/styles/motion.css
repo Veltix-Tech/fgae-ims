@@ -1,0 +1,39 @@
+/* Reuse these utilities on future review units; motion never gates interaction. */
+:where(.ripple-button) { position: relative; overflow: hidden; isolation: isolate; }
+.button-ripple { position: absolute; pointer-events: none; border-radius: 50%; background: currentColor;
+  left: var(--ripple-x); top: var(--ripple-y); width: var(--ripple-size); height: var(--ripple-size);
+  margin-left: calc(var(--ripple-size) / -2); margin-top: calc(var(--ripple-size) / -2);
+  animation: button-ripple var(--motion-ripple) var(--ease-out) both; }
+.motion-enter { animation: enter-up var(--motion-enter) var(--ease-out) backwards; }
+.motion-stagger > * { animation: enter-up var(--motion-enter) var(--ease-out) backwards; }
+.motion-stagger > :nth-child(2) { animation-delay: 60ms; }
+.motion-stagger > :nth-child(3) { animation-delay: 120ms; }
+.motion-stagger > :nth-child(4) { animation-delay: 180ms; }
+.site-header { position: relative; z-index: 10; }
+.form-panel.motion-enter { animation-delay: 80ms; }
+.purpose-list.motion-stagger > * { animation-delay: 120ms; }
+.purpose-list.motion-stagger > :nth-child(2) { animation-delay: 180ms; }
+.purpose-list.motion-stagger > :nth-child(3) { animation-delay: 240ms; }
+.feedback, .success-content, .field-error { animation: enter-up var(--motion-state) var(--ease-out) backwards; }
+.account-summary > svg { animation: confirm-in var(--motion-enter) var(--ease-out) backwards; }
+.language-options { animation-duration: var(--motion-state); animation-timing-function: var(--ease-out); }
+.language-chevron { transition: transform var(--motion-state) var(--ease-out); }
+.ripple-button { transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease,
+  box-shadow var(--motion-fast) ease, transform var(--motion-fast) var(--ease-out); }
+.field input { transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease; }
+.field input:focus { box-shadow: 0 0 0 5px #0369A10B; }
+.primary > svg { transition: transform var(--motion-fast) var(--ease-out); }
+.ripple-button:active:not(:disabled) { transform: scale(.98); }
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px #0369A124; }
+  .primary:hover:not(:disabled) > svg { transform: translateX(3px); }
+  .primary:active:not(:disabled) { transform: scale(.99); box-shadow: none; }
+}
+@keyframes enter-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes confirm-in { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: scale(1); } }
+@keyframes button-ripple { from { opacity: .24; transform: scale(0); } to { opacity: 0; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .button-ripple { display: none; }
+  .ripple-button, .ripple-button > svg { transform: none !important; }
+}
