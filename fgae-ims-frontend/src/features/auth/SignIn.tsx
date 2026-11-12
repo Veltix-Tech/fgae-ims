@@ -126,6 +126,7 @@ export function SignIn({ service = authService, protectedEntry = false }: { serv
         <CheckCircleIcon size={26} aria-hidden="true" /><div><span className="small-label">{t('accountLabel')}</span><strong>{identity.name}</strong><p>{identity.email}</p></div>
       </div>
       {identity.grants.length > 0 && <div className="role-list"><span className="small-label">{t('rolesLabel')}</span><p>{[...new Set(identity.grants.map(g => g.role))].map(role => t(role)).join(' · ')}</p></div>}
+      {nextJourney(identity) === 'password-change' && <a href="/first-login" className="primary action-link first-continue">{t('firstContinue')}<ArrowRightIcon size={20} aria-hidden="true" /></a>}
       <Button className="primary" disabled={busy === 'logout'} onClick={() => void signOut()}>{t(busy === 'logout' ? 'signingOut' : 'signOut')}<SignOutIcon size={20} aria-hidden="true" /></Button>
     </div> : <form onSubmit={event => void submit(event)} noValidate aria-busy={busy === 'login'}>
       {protectedEntry && !error && <p className="entry-notice">{t('sessionNotice')}</p>}

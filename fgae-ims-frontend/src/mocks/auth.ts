@@ -4,7 +4,7 @@ import { AuthError, type AuthService } from '../services/contracts/auth'
 
 const SESSION_KEY = 'fgae.synthetic.auth.v1'
 const TTL = 15 * 60 * 1000
-function read(): { version: 1; email: string; expiresAt: number; credentialRevision?: number } | null {
+export function readSession(): { version: 1; email: string; expiresAt: number; credentialRevision?: number } | null {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY)
     if (!raw) return null
@@ -40,7 +40,7 @@ export const authService: AuthService = {
     // Let an abandoned mount cancel before consuming the expired-session notice.
     await Promise.resolve()
     check(signal)
-    const saved = read()
+    const saved = readSession()
     if (!saved) return null
     if (saved.expiresAt <= Date.now() || (saved.credentialRevision ?? 0) !== credentialRevision(saved.email)) { sessionStorage.removeItem(SESSION_KEY); throw new AuthError('SESSION_EXPIRED') }
     const account = accounts.find(a => a.email === saved.email)

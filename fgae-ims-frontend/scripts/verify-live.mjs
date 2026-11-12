@@ -7,5 +7,5 @@ const text = (await Promise.all(scripts.map(file => readFile(`dist/assets/${file
 for (const marker of ['Demo-only-2026!', 'example.test', 'fgae.synthetic.auth', 'fgae.synthetic.recovery', 'fgae.synthetic.credentials', 'demo-reset-', 'synthetic-reset-', 'fictional-person', 'fictional-area']) {
   assert(!text.includes(marker), `Synthetic marker leaked into live build: ${marker}`)
 }
-for (const endpoint of ['/auth/login', '/auth/refresh', '/auth/me', '/auth/forgot-password', '/auth/reset-password/validate', '/auth/reset-password']) assert(text.includes(endpoint), `Missing live endpoint ${endpoint}`)
+for (const endpoint of ['/auth/login', '/auth/refresh', '/auth/me', '/auth/forgot-password', '/auth/reset-password/validate', '/auth/reset-password', '/auth/first-login/password']) assert(text.includes(endpoint), `Missing live endpoint ${endpoint}`)
 console.log('PASS: live bundle contains auth endpoints and excludes synthetic accounts, credentials and storage.')

@@ -4,12 +4,13 @@ import { SignIn } from '../features/auth/SignIn'
 import { LanguageSelector } from '../components/LanguageSelector'
 import { ForgotPassword } from '../features/auth/ForgotPassword'
 import { ResetPassword } from '../features/auth/ResetPassword'
+import { FirstLogin } from '../features/auth/FirstLogin'
 
-export function App({ protectedEntry = false, page = 'sign-in', resetToken = '' }: { protectedEntry?: boolean; page?: 'sign-in' | 'recovery' | 'reset'; resetToken?: string }) {
+export function App({ protectedEntry = false, page = 'sign-in', resetToken = '' }: { protectedEntry?: boolean; page?: 'sign-in' | 'recovery' | 'reset' | 'first'; resetToken?: string }) {
   const { t } = useLocale()
-  const headingId = page === 'reset' ? 'reset-heading' : page === 'recovery' ? 'recovery-heading' : 'sign-in-heading'
+  const headingId = page === 'first' ? 'first-heading' : page === 'reset' ? 'reset-heading' : page === 'recovery' ? 'recovery-heading' : 'sign-in-heading'
   return <>
-    <a className="skip-link" href={`#${headingId}`}>{t(page === 'reset' ? 'resetSkip' : page === 'recovery' ? 'recoverySkip' : 'skip')}</a>
+    <a className="skip-link" href={`#${headingId}`}>{t(page === 'first' ? 'firstSkip' : page === 'reset' ? 'resetSkip' : page === 'recovery' ? 'recoverySkip' : 'skip')}</a>
     <header className="site-header motion-enter">
       <div className="brand"><img src="/brand/mark.svg" width="46" height="46" alt="" /><div><span className="wordmark">FGAE<span className="wordmark-divider">/</span><span className="ims">IMS</span></span><p>{t('organization')}</p></div></div>
       <LanguageSelector />
@@ -26,7 +27,7 @@ export function App({ protectedEntry = false, page = 'sign-in', resetToken = '' 
         </ul>
         <div className="panel-bottom"><span className="blue-line" aria-hidden="true" /><p>{t('internal')}</p></div>
       </section>
-      <div className="form-panel motion-enter">{page === 'reset' ? <ResetPassword token={resetToken} /> : page === 'recovery' ? <ForgotPassword /> : <SignIn protectedEntry={protectedEntry} />}</div>
+      <div className="form-panel motion-enter">{page === 'first' ? <FirstLogin /> : page === 'reset' ? <ResetPassword token={resetToken} /> : page === 'recovery' ? <ForgotPassword /> : <SignIn protectedEntry={protectedEntry} />}</div>
     </main>
     <footer className="site-footer"><span>{t('footer')}</span><span>{t('footerNote')}</span></footer>
   </>

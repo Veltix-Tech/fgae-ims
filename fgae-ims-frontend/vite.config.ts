@@ -11,6 +11,8 @@ export default defineConfig(({ mode }) => ({
     mode === 'mock' || mode === 'test' ? './src/mocks/recovery.ts' : './src/services/adapters/live-recovery.ts', import.meta.url,
   )), '@reset-adapter': fileURLToPath(new URL(
     mode === 'mock' || mode === 'test' ? './src/mocks/reset-password.ts' : './src/services/adapters/live-reset-password.ts', import.meta.url,
+  )), '@first-login-adapter': fileURLToPath(new URL(
+    mode === 'mock' || mode === 'test' ? './src/mocks/first-login.ts' : './src/services/adapters/live-first-login.ts', import.meta.url,
   )) } },
   test: { environment: 'jsdom', setupFiles: ['./src/test/setup.ts'], include: ['src/**/*.test.{ts,tsx}'], restoreMocks: true },
 }))

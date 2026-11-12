@@ -1,9 +1,10 @@
 import { ResetError, validNewPassword, type ResetRequest } from '../services/contracts/reset-password'
 import { accounts } from './identities'
+import { FirstLoginError, type FirstLoginInput } from '../services/contracts/first-login'
 
 const STORE = 'fgae.synthetic.credentials.v1'
 const INITIAL_PASSWORD = 'Demo-only-2026!'
-type Credential = { salt: string; digest: string; revision: number }
+type Credential = { salt: string; digest: string; revision: number; firstLogin?: { key: string; digest: string; previousRevision: number } }
 type Link = { token: string; email: string; expiresAt: number; usedAt?: number; completionKey?: string; completionDigest?: string }
 type State = { version: 1; credentials: Record<string, Credential>; links: Link[] }
 function read(): State {
@@ -94,5 +95,35 @@ export async function completeRecovery(input: ResetRequest, signal?: AbortSignal
     write(state)
     const bus = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('fgae.auth') : null
     bus?.postMessage('credentials-changed'); bus?.close()
+  })
+}
+
+export async function completeFirstLogin(input: FirstLoginInput, getSession: () => { email: string; expiresAt: number; credentialRevision?: number } | null, signal?: AbortSignal) {
+  if (!validNewPassword(input.password)) throw new FirstLoginError('PASSWORD_REJECTED')
+  if (input.password !== input.confirmation) throw new FirstLoginError('CONFIRMATION_MISMATCH')
+  return locked(async () => {
+    signal?.throwIfAborted()
+    const session = getSession()
+    if (!session || session.expiresAt <= Date.now()) throw new FirstLoginError('SESSION_EXPIRED')
+    const account = accounts.find(item => item.email === session.email)
+    if (!account?.mustChangePassword) throw new FirstLoginError('NOT_REQUIRED')
+    const state = read()
+    const previous = state.credentials[session.email]
+    const payloadDigest = await digest(JSON.stringify([input.currentPassword, input.password, input.confirmation]), input.idempotencyKey)
+    signal?.throwIfAborted()
+    if (previous?.firstLogin?.key === input.idempotencyKey && previous.firstLogin.digest === payloadDigest && previous.firstLogin.previousRevision === (session.credentialRevision ?? 0)) return
+    if ((session.credentialRevision ?? 0) !== (previous?.revision ?? 0)) throw new FirstLoginError('SESSION_EXPIRED')
+    if (previous?.revision) throw new FirstLoginError('NOT_REQUIRED')
+    if (!await verifyCredential(session.email, input.currentPassword)) throw new FirstLoginError('WRONG_PASSWORD')
+    if (input.password === input.currentPassword) throw new FirstLoginError('SAME_PASSWORD')
+    const salt = crypto.randomUUID()
+    const credential: Credential = { salt, digest: await digest(input.password, salt), revision: 1,
+      firstLogin: { key: input.idempotencyKey, digest: payloadDigest, previousRevision: session.credentialRevision ?? 0 } }
+    signal?.throwIfAborted()
+    const current = getSession()
+    if (!current || current.email !== session.email || current.expiresAt !== session.expiresAt || current.expiresAt <= Date.now() || current.credentialRevision !== session.credentialRevision) throw new FirstLoginError('SESSION_EXPIRED')
+    state.credentials[session.email] = credential
+    state.links = state.links.map(link => link.email === session.email && !link.usedAt ? { ...link, usedAt: Date.now() } : link)
+    write(state)
   })
 }

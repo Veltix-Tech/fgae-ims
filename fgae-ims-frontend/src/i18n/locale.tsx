@@ -12,7 +12,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = locale
     document.documentElement.dir = 'ltr'
-    document.title = (locale === 'am' ? am : en)[window.location.pathname === '/reset-password' ? 'resetTitle' : window.location.pathname === '/forgot-password' ? 'recoveryTitle' : 'title']
+    document.title = (locale === 'am' ? am : en)[window.location.pathname === '/first-login' ? 'firstTitle' : window.location.pathname === '/reset-password' ? 'resetTitle' : window.location.pathname === '/forgot-password' ? 'recoveryTitle' : 'title']
     try { localStorage.setItem('fgae.locale', locale) } catch { /* The current form remains usable if storage is disabled. */ }
   }, [locale])
   return <LocaleContext.Provider value={{ locale, setLocale, t: key => (locale === 'am' ? am : en)[key] }}>{children}</LocaleContext.Provider>

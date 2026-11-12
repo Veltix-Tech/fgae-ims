@@ -1,5 +1,6 @@
 import { AuthError, type AuthErrorCode } from '../contracts/auth'
 import { envelope } from '../adapters/auth-dto'
+import { FirstLoginError, type FirstLoginErrorCode, type FirstLoginInput } from '../contracts/first-login'
 
 const knownErrors = new Set<AuthErrorCode>(['INVALID_CREDENTIALS', 'INACTIVE_ACCOUNT', 'NETWORK',
   'UNAVAILABLE', 'RATE_LIMITED', 'SESSION_EXPIRED'])
@@ -15,12 +16,12 @@ export class AuthClient {
     if (typeof data.access_token !== 'string' || !data.access_token) throw new AuthError('INVALID_RESPONSE')
     this.accessToken = data.access_token
   }
-  private async request(path: string, method: string, body?: unknown, signal?: AbortSignal) {
+  private async request(path: string, method: string, body?: unknown, signal?: AbortSignal, extraHeaders?: Record<string, string>) {
     try {
       const fetcher = this.fetcher
       return await fetcher(`${this.baseUrl}${path}`, {
         method, credentials: 'include', signal,
-        headers: { ...(body ? { 'Content-Type': 'application/json' } : {}),
+        headers: { ...extraHeaders, ...(body ? { 'Content-Type': 'application/json' } : {}),
           ...(this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {}) },
         ...(body ? { body: JSON.stringify(body) } : {}),
       })
@@ -74,5 +75,26 @@ export class AuthClient {
     // C-AUTH-04 is proposed: backend must revoke its refresh cookie, not just the memory token.
     try { await this.parse(await this.request('/auth/logout', 'POST')) }
     finally { this.clear() }
+  }
+  async replaceTemporaryPassword(input: FirstLoginInput, signal?: AbortSignal) {
+    const generation = this.generation
+    const send = () => this.request('/auth/first-login/password', 'POST', {
+      current_password: input.currentPassword, password: input.password, password_confirmation: input.confirmation,
+    }, signal, { 'Idempotency-Key': input.idempotencyKey })
+    let response = await send()
+    if (response.status === 401) { await this.refresh(); response = await send() }
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new FirstLoginError('SESSION_EXPIRED')
+    const codes: FirstLoginErrorCode[] = ['SESSION_EXPIRED', 'NOT_REQUIRED', 'WRONG_PASSWORD', 'SAME_PASSWORD', 'PASSWORD_REJECTED', 'CONFIRMATION_MISMATCH', 'RATE_LIMITED']
+    if (!response.ok) {
+      let code: FirstLoginErrorCode | undefined
+      try { code = (await response.json() as { code?: FirstLoginErrorCode }).code } catch { /* HTTP fallback */ }
+      throw new FirstLoginError(code && codes.includes(code) ? code : response.status === 401 ? 'SESSION_EXPIRED' : response.status === 429 ? 'RATE_LIMITED' : 'UNAVAILABLE')
+    }
+    const data = await this.parse(response)
+    if (data.completed !== true) throw new FirstLoginError('UNAVAILABLE')
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new FirstLoginError('SESSION_EXPIRED')
+    this.clear()
   }
 }

@@ -1,4 +1,7 @@
 /// <reference types="vite/client" />
+declare module '@first-login-adapter' {
+  export const firstLoginService: import('./services/contracts/first-login').FirstLoginService
+}
 declare module '@auth-adapter' {
   export const authService: import('./services/contracts/auth').AuthService
 }
