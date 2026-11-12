@@ -1,4 +1,6 @@
+import { registration } from './registration'
 export const en = {
+  ...registration,
   firstTitle: 'Set your password · FGAE IMS', firstSkip: 'Skip to password setup', firstEyebrow: 'FIRST SIGN-IN',
   firstHeading: 'Make this account yours', firstIntro: 'Replace your temporary password with one only you know. You’ll sign in again with your new password.',
   firstCheckingHeading: 'Checking your account', firstCurrent: 'Temporary password', firstCurrentRequired: 'Enter the temporary password you used to sign in.',

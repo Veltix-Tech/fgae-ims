@@ -154,6 +154,7 @@ export function SignIn({ service = authService, protectedEntry = false }: { serv
       </Button>
       <span className="sr-only" role="status">{busy === 'login' ? t('signingIn') : ''}</span>
       <div className="forgot-link"><a href="/forgot-password" className="text-link">{t('forgotPassword')}</a></div>
+      <div className="forgot-link"><a href="/register" className="text-link">{t('regLink')}</a></div>
     </form>}
     <aside className="account-help" aria-label={t('helpTitle')}><InfoIcon size={21} aria-hidden="true" /><div><h2>{t('helpTitle')}</h2><p>{t('help')}</p></div></aside>
   </section>

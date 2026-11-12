@@ -1,12 +1,15 @@
 import { ResetError, validNewPassword, type ResetRequest } from '../services/contracts/reset-password'
 import { accounts } from './identities'
 import { FirstLoginError, type FirstLoginInput } from '../services/contracts/first-login'
+import { type Identity } from '../services/contracts/auth'
+import { RegistrationError, normalizePhone, type RegistrationInput, type RegistrationReceipt } from '../services/contracts/registration'
 
 const STORE = 'fgae.synthetic.credentials.v1'
 const INITIAL_PASSWORD = 'Demo-only-2026!'
 type Credential = { salt: string; digest: string; revision: number; firstLogin?: { key: string; digest: string; previousRevision: number } }
 type Link = { token: string; email: string; expiresAt: number; usedAt?: number; completionKey?: string; completionDigest?: string }
-type State = { version: 1; credentials: Record<string, Credential>; links: Link[] }
+type Application = { identity: Identity; fields: RegistrationInput['fields']; documents: RegistrationInput['documents']; receipt: RegistrationReceipt; key: string; digest: string }
+type State = { version: 1; credentials: Record<string, Credential>; links: Link[]; applications?: Application[] }
 function read(): State {
   try {
     const raw = localStorage.getItem(STORE)
@@ -33,13 +36,14 @@ async function digest(value: string, salt: string) {
   return Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('')
 }
 export function credentialRevision(email: string) { return read().credentials[email.toLowerCase()]?.revision ?? 0 }
+export function findAccount(email: string) { return accounts.find(item => item.email === email.toLowerCase()) ?? read().applications?.find(item => item.identity.email === email.toLowerCase())?.identity }
 export async function verifyCredential(email: string, password: string) {
   const credential = read().credentials[email.toLowerCase()]
   return credential ? await digest(password, credential.salt) === credential.digest : password === INITIAL_PASSWORD
 }
 export async function issueRecoveryLink(email: string, requestKey: string) {
   return locked(async () => {
-    const account = accounts.find(item => item.email === email.toLowerCase())
+    const account = findAccount(email)
     // The public request returns the same response even when no synthetic delivery is created.
     if (!account) return
     const state = read()
@@ -47,6 +51,30 @@ export async function issueRecoveryLink(email: string, requestKey: string) {
     if (state.links.some(link => link.token === token)) return
     state.links = [...state.links.slice(-39), { token, email: account.email, expiresAt: Date.now() + 15 * 60_000 }]
     write(state)
+  })
+}
+
+export async function registerApplicant(input: RegistrationInput, signal?: AbortSignal): Promise<RegistrationReceipt> {
+  return locked(async () => {
+    signal?.throwIfAborted()
+    const state = read()
+    const fields = { ...input.fields, email: input.fields.email.trim().toLowerCase(), fullName: input.fields.fullName.trim(), phone: normalizePhone(input.fields.phone) }
+    const payload = await digest(JSON.stringify({ ...input, fields }), input.idempotencyKey)
+    const existing = state.applications?.find(item => item.key === input.idempotencyKey)
+    if (existing) {
+      if (existing.digest !== payload) throw new RegistrationError('VALIDATION')
+      return existing.receipt
+    }
+    if (findAccount(fields.email) || fields.email === 'inactive@example.test') throw new RegistrationError('EMAIL_IN_USE')
+    const id = `application-${crypto.randomUUID()}`
+    const receipt: RegistrationReceipt = { id, email: fields.email, submittedAt: new Date().toISOString(), status: 'PENDING' }
+    const salt = crypto.randomUUID()
+    state.credentials[fields.email] = { salt, digest: await digest(input.password, salt), revision: 1 }
+    state.applications = [...(state.applications ?? []), { fields, documents: input.documents, receipt, key: input.idempotencyKey, digest: payload,
+      identity: { id, name: fields.fullName, email: fields.email, grants: [], accountState: 'PENDING', mustChangePassword: false } }]
+    signal?.throwIfAborted()
+    try { write(state) } catch { throw new RegistrationError('STORAGE_UNAVAILABLE') }
+    return receipt
   })
 }
 async function ensureReviewLink(token: string) {

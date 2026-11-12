@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test'
 export default defineConfig({
   testDir: './e2e', fullyParallel: true, workers: 3, timeout: 30_000,
   reporter: [['list'], ['html', { open: 'never' }]],
+  expect: { timeout: Number(process.env.PLAYWRIGHT_EXPECT_TIMEOUT) || 5_000 },
   use: { baseURL: 'http://127.0.0.1:5173', browserName: 'chromium', channel: process.env.PLAYWRIGHT_CHANNEL || 'msedge',
     launchOptions: { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH }, trace: 'retain-on-failure' },
   webServer: [
