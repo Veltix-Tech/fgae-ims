@@ -20,6 +20,12 @@
 .language-chevron { transition: transform var(--motion-state) var(--ease-out); }
 .ripple-button { transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease,
   box-shadow var(--motion-fast) ease, transform var(--motion-fast) var(--ease-out); }
+.ripple-button:is([aria-busy='true'], :has(.spinner))::after {
+  content: ''; position: absolute; pointer-events: none; bottom: 0; left: 0;
+  width: 40%; height: 3px; border-radius: 999px; background: currentColor;
+  opacity: .65; animation: button-loading 1.2s ease-in-out infinite;
+}
+@keyframes button-loading { from { transform: translateX(-110%); } to { transform: translateX(360%); } }
 .field input { transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease; }
 .field input:focus { box-shadow: 0 0 0 5px #0369A10B; }
 .primary > svg { transition: transform var(--motion-fast) var(--ease-out); }
@@ -35,5 +41,6 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .button-ripple { display: none; }
+  .ripple-button:is([aria-busy='true'], :has(.spinner))::after { width: 100%; opacity: .35; }
   .ripple-button, .ripple-button > svg { transform: none !important; }
 }

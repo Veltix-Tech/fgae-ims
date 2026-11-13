@@ -4,7 +4,7 @@ body { margin: 0; background: var(--canvas); color: var(--ink); font-family: 'No
 html[lang='am'] body { font-family: 'Noto Sans Ethiopic Variable', 'Noto Sans Variable', sans-serif; }
 button, input, select { font: inherit; }
 button, select { cursor: pointer; }
-button:disabled { cursor: wait; }
+button:disabled { cursor: default; }
 button { touch-action: manipulation; }
 input, select, button { -webkit-tap-highlight-color: transparent; }
 button, input, select, a { outline-offset: 4px; }
