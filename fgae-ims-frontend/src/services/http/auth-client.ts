@@ -2,6 +2,8 @@ import { AuthError, type AuthErrorCode } from '../contracts/auth'
 import { envelope } from '../adapters/auth-dto'
 import { FirstLoginError, type FirstLoginErrorCode, type FirstLoginInput } from '../contracts/first-login'
 import { ApplicationError } from '../contracts/application'
+import { CorrectionError, correctionCodes } from '../contracts/corrections'
+import type { PersonField } from '../contracts/registration'
 
 const knownErrors = new Set<AuthErrorCode>(['INVALID_CREDENTIALS', 'INACTIVE_ACCOUNT', 'NETWORK',
   'UNAVAILABLE', 'RATE_LIMITED', 'SESSION_EXPIRED'])
@@ -89,6 +91,36 @@ export class AuthClient {
     signal?.throwIfAborted()
     if (generation !== this.generation) throw new ApplicationError('SESSION_EXPIRED')
     return data
+  }
+  async correction(suffix: string, method: string, body?: unknown, signal?: AbortSignal, options: { key?: string; progress?: (percent: number) => void; blob?: boolean } = {}) {
+    const generation = this.generation
+    const path = `/volunteers/applications/me/corrections${suffix}`
+    const send = () => body instanceof FormData ? new Promise<Response>((resolve, reject) => {
+      const xhr = new XMLHttpRequest(); xhr.open(method, `${this.baseUrl}${path}`); xhr.withCredentials = true; xhr.responseType = 'blob'
+      if (this.accessToken) xhr.setRequestHeader('Authorization', `Bearer ${this.accessToken}`)
+      const abort = () => xhr.abort(); const cleanup = () => signal?.removeEventListener('abort', abort)
+      xhr.upload.onprogress = event => { if (event.lengthComputable) options.progress?.(Math.round(event.loaded / event.total * 100)) }
+      xhr.onload = () => { cleanup(); if (!xhr.status) reject(new CorrectionError('NETWORK')); else resolve(new Response(xhr.response as Blob, { status: xhr.status, headers: { 'Content-Type': xhr.getResponseHeader('Content-Type') || '' } })) }
+      xhr.onerror = () => { cleanup(); reject(new CorrectionError('NETWORK')) }
+      xhr.onabort = () => { cleanup(); reject(new DOMException('Aborted', 'AbortError')) }
+      if (signal?.aborted) { reject(new DOMException('Aborted', 'AbortError')); return }
+      signal?.addEventListener('abort', abort, { once: true }); xhr.send(body)
+    }) : this.request(path, method, body, signal, options.key ? { 'Idempotency-Key': options.key } : undefined)
+    let response = await send()
+    if (response.status === 401) { await this.refresh(); response = await send() }
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new CorrectionError('SESSION_EXPIRED')
+    if (!response.ok) {
+      const dto = await response.json().catch(() => null) as { code?: typeof correctionCodes[number]; fields?: Record<string, string> } | null
+      const fields: Partial<Record<PersonField, string>> = {}
+      const messages: Record<string, string> = { REQUIRED: 'regRequired', INVALID_PHONE: 'regPhoneInvalid', INVALID_NAME: 'regNameInvalid', INVALID_DATE: 'regDateInvalid', INVALID_BRANCH: 'regBranchInvalid' }
+      for (const [field, code] of Object.entries(dto?.fields ?? {})) if (['fullName', 'phone', 'birthDate', 'gender', 'branchId'].includes(field) && messages[code]) fields[field as PersonField] = messages[code]!
+      throw new CorrectionError(response.status === 401 ? 'SESSION_EXPIRED' : response.status === 403 ? 'FORBIDDEN' : dto?.code && correctionCodes.includes(dto.code) ? dto.code : response.status === 409 ? 'REVISION_CONFLICT' : response.status === 429 ? 'RATE_LIMITED' : 'UNAVAILABLE', fields)
+    }
+    const result = options.blob ? await response.blob() : await this.parse(response)
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new CorrectionError('SESSION_EXPIRED')
+    return result
   }
   async replaceTemporaryPassword(input: FirstLoginInput, signal?: AbortSignal) {
     const generation = this.generation

@@ -3,10 +3,10 @@ import { UploadSimpleIcon, XIcon, ArrowSquareOutIcon } from '@phosphor-icons/rea
 import { registrationService } from '@registration-adapter'
 import { Button } from '../../components/Button'
 import { useLocale } from '../../i18n/locale'
-import { RegistrationError, validateDocument, type DocumentRule, type RegistrationDocument as Document } from '../../services/contracts/registration'
+import { RegistrationError, validateDocument, type DocumentRule, type RegistrationDocument as Document, type RegistrationService } from '../../services/contracts/registration'
 import type { TranslationKey } from '../../i18n/locales/en/auth'
 
-export function RegistrationDocument({ rule, value, disabled, onChange, onBusy }: { rule: DocumentRule; value?: Document; disabled: boolean; onChange: (value?: Document) => void; onBusy: (busy: boolean) => void }) {
+export function RegistrationDocument({ rule, value, disabled, onChange, onBusy, service = registrationService, onFailure }: { rule: DocumentRule; value?: Document; disabled: boolean; onChange: (value?: Document) => void; onBusy: (busy: boolean) => void; service?: Pick<RegistrationService, 'upload' | 'preview'>; onFailure?: (failure: unknown) => void }) {
   const { t, locale } = useLocale()
   const [progress, setProgress] = useState<number | null>(null)
   const [error, setError] = useState<TranslationKey | null>(null)
@@ -17,6 +17,8 @@ export function RegistrationDocument({ rule, value, disabled, onChange, onBusy }
   const active = useRef<AbortController | null>(null)
   const alive = useRef(true)
   const busyCallback = useRef(onBusy)
+  const failureCallback = useRef(onFailure)
+  useEffect(() => { failureCallback.current = onFailure }, [onFailure])
   useEffect(() => { busyCallback.current = onBusy }, [onBusy])
   useEffect(() => { alive.current = true; return () => { alive.current = false; active.current?.abort(); busyCallback.current(false) } }, [])
   const docId = value?.id
@@ -24,11 +26,11 @@ export function RegistrationDocument({ rule, value, disabled, onChange, onBusy }
   const previewError = preview.id === docId && preview.error
   useEffect(() => {
     const controller = new AbortController(); let objectUrl = ''
-    if (docId) void registrationService.preview(docId, controller.signal).then(blob => {
+    if (docId) void service.preview(docId, controller.signal).then(blob => {
       if (!controller.signal.aborted) { objectUrl = URL.createObjectURL(blob); setPreview({ id: docId, url: objectUrl, error: false }) }
-    }).catch(() => { if (!controller.signal.aborted) setPreview({ id: docId, url: '', error: true }) })
+    }).catch(failure => { if (!controller.signal.aborted) { setPreview({ id: docId, url: '', error: true }); failureCallback.current?.(failure) } })
     return () => { controller.abort(); if (objectUrl) URL.revokeObjectURL(objectUrl) }
-  }, [docId, previewAttempt])
+  }, [docId, previewAttempt, service])
   async function upload(file: File) {
     if (active.current) return
     setCandidate(file)
@@ -36,9 +38,10 @@ export function RegistrationDocument({ rule, value, disabled, onChange, onBusy }
     setError(null); setProgress(0); onBusy(true)
     try {
       await validateDocument(file, rule); controller.signal.throwIfAborted()
-      const result = await registrationService.upload(file, rule.id, controller.signal, setProgress)
+      const result = await service.upload(file, rule.id, controller.signal, setProgress)
       if (!controller.signal.aborted && alive.current) { onChange(result); setCandidate(null) }
     } catch (failure) {
+      if (!controller.signal.aborted && alive.current) failureCallback.current?.(failure)
       if (alive.current) setError(controller.signal.aborted ? 'regUploadCancelled' : failure instanceof RegistrationError && failure.code === 'FILE_TYPE' ? 'regFileType' : failure instanceof RegistrationError && failure.code === 'FILE_SIZE' ? 'regFileSize' : 'regUploadFailed')
     } finally {
       active.current = null

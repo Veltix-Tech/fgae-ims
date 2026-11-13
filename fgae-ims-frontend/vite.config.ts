@@ -5,7 +5,9 @@ import { fileURLToPath } from 'node:url'
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   // The build mode selects one adapter at compile time. Live bundles cannot import fixtures.
-  resolve: { alias: { '@application-adapter': fileURLToPath(new URL(
+  resolve: { alias: { '@correction-adapter': fileURLToPath(new URL(
+    mode === 'mock' || mode === 'test' ? './src/mocks/corrections.ts' : './src/services/adapters/live-corrections.ts', import.meta.url,
+  )), '@application-adapter': fileURLToPath(new URL(
     mode === 'mock' || mode === 'test' ? './src/mocks/application.ts' : './src/services/adapters/live-application.ts', import.meta.url,
   )), '@auth-adapter': fileURLToPath(new URL(
     mode === 'mock' || mode === 'test' ? './src/mocks/auth.ts' : './src/services/adapters/live-auth.ts', import.meta.url,

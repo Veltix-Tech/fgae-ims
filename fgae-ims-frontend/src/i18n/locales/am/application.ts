@@ -4,7 +4,7 @@ export const application: Record<keyof typeof en, string> = {
   appIntro: 'ያስገቡትን መረጃ፣ ሂደቱን እና ውሳኔዎችን በአንድ ቦታ ይመልከቱ.', appLink: 'ማመልከቻዬን አሳይ',
   appPending: 'ግምገማ በመጠባበቅ ላይ', appReturned: 'ማስተካከያ ተጠይቋል', appApproved: 'ጸድቋል', appRejected: 'አልጸደቀም',
   appPendingNote: 'ማመልከቻዎ ደርሷል፤ ግምገማ እየጠበቀ ነው. በአሁኑ ጊዜ ከእርስዎ የሚጠበቅ እርምጃ የለም.',
-  appReturnedNote: 'በማመልከቻዎ ታሪክ ውስጥ ያለውን አስተያየት ይመልከቱ. ማስተካከያ ለማቅረብ የFGAE አስተዳዳሪዎን ያነጋግሩ.',
+  appReturnedNote: 'በማመልከቻዎ ታሪክ ውስጥ ያለውን አስተያየት ይመልከቱ፤ የተጠየቁትን ማስተካከያዎች ያድርጉ.',
   appApprovedNote: 'ማመልከቻዎ ጸድቋል. የመለያ መዳረሻ በተለየ ሁኔታ ይተዳደራል፤ ለመጀመር እገዛ ከፈለጉ የFGAE አስተዳዳሪዎን ያነጋግሩ.',
   appRejectedNote: 'ማመልከቻዎ አልጸደቀም. ከታች ያለውን ውሳኔ ያንብቡ፤ ጥያቄ ካለዎት የFGAE አስተዳዳሪዎን ያነጋግሩ.',
   appReference: 'የማመልከቻ ማጣቀሻ', appSubmitted: 'የቀረበበት ጊዜ', appUpdated: 'መጨረሻ የተዘመነበት', appRefresh: 'ሁኔታውን አድስ', appRefreshing: 'ሁኔታው እየተፈተሸ ነው…',

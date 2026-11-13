@@ -1,3 +1,4 @@
+import { canCorrect } from '../../services/contracts/corrections'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowClockwiseIcon, ArrowLeftIcon, CheckCircleIcon, ClockIcon, FileTextIcon, InfoIcon, SignOutIcon } from '@phosphor-icons/react'
 import { applicationService } from '@application-adapter'
@@ -79,7 +80,7 @@ export function MyApplication({ service = applicationService }: { service?: Appl
       {record ? <>
         <div className={`application-status status-${record.status.toLowerCase()}`}>
           <div className="application-status-icon" aria-hidden="true">{record.status === 'APPROVED' ? <CheckCircleIcon size={30} /> : <ClockIcon size={30} />}</div>
-          <div><p className="eyebrow">{t('appHeading')}</p><h2>{t(statuses[record.status])}</h2><p>{t(notes[record.status])}</p></div>
+          <div><p className="eyebrow">{t('appHeading')}</p><h2>{t(statuses[record.status])}</h2><p>{t(notes[record.status])}</p>{record.status === 'RETURNED' && canCorrect(snapshot.identity) && <a href="/my-application/edit" className="primary action-link correction-continue">{t('corrLink')}</a>}</div>
         </div>
         <dl className="application-meta"><div><dt>{t('appReference')}</dt><dd>{record.id}</dd></div><div><dt>{t('appSubmitted')}</dt><dd><time dateTime={record.submittedAt}>{date(record.submittedAt)}</time></dd></div><div><dt>{t('appUpdated')}</dt><dd><time dateTime={record.updatedAt}>{date(record.updatedAt)}</time></dd></div></dl>
         <div className="application-columns">

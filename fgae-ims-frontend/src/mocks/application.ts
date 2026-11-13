@@ -1,4 +1,5 @@
 import { authService } from './auth'
+import { readWorkflow } from './correction-store'
 import { readOwnApplication } from './credentials'
 import { ApplicationError, canReadOwnApplication, mapOwnApplication, type ApplicationService, type OwnApplication } from '../services/contracts/application'
 import type { Identity } from '../services/contracts/auth'
@@ -23,11 +24,11 @@ export const applicationService: ApplicationService = {
     if (!identity) throw new ApplicationError('SESSION_EXPIRED')
     if (!canReadOwnApplication(identity)) throw new ApplicationError('FORBIDDEN')
     const stored = readOwnApplication(identity.id)
-    const application: OwnApplication | null = stored ? {
+    const application: OwnApplication | null = readWorkflow(identity.id)?.application ?? (stored ? {
       id: stored.receipt.id, ownerId: identity.id, status: 'PENDING', submittedAt: stored.receipt.submittedAt, updatedAt: stored.receipt.submittedAt,
       fields: stored.fields, documents: stored.documents, branchName: stored.fields.branchId === 'fictional-branch-a' ? 'Demo branch A' : stored.fields.branchId === 'fictional-branch-b' ? 'Demo branch B' : stored.fields.branchId,
       history: [{ id: `${stored.receipt.id}-submitted`, status: 'PENDING', at: stored.receipt.submittedAt, note: '' }],
-    } : fixture(identity)
+    } : fixture(identity))
     signal?.throwIfAborted()
     return { identity, application: mapOwnApplication(application, identity.id) }
   },

@@ -18,3 +18,7 @@ declare module '@reset-adapter' {
 declare module '@application-adapter' {
   export const applicationService: import('./services/contracts/application').ApplicationService
 }
+
+declare module '@correction-adapter' {
+  export const correctionService: import('./services/contracts/corrections').CorrectionService
+}

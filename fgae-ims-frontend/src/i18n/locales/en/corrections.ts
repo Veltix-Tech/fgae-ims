@@ -1,0 +1,16 @@
+export const corrections = {
+  corrTitle: 'Correct application · FGAE IMS', corrSkip: 'Skip to application corrections', corrHeading: 'Update your application', corrIntro: 'Make the requested changes, then review and send your application back for consideration.',
+  corrLink: 'Make requested changes', corrBack: 'Back to my application', corrFeedback: 'What needs your attention', corrDetails: 'Requested details', corrDocuments: 'Requested documents',
+  corrLocked: 'Other submitted details stay unchanged. Your sign-in email is not changed here.', corrNoFields: 'No personal-detail changes are requested.', corrNoDocuments: 'No document changes are requested.',
+  corrDraftHint: 'Save a draft to return to these corrections later. Saving does not resubmit your application.', corrSaved: 'Your correction draft has been saved.', corrRestored: 'Your saved corrections have been restored.',
+  corrDelete: 'Delete this correction draft?', corrDeleteBody: 'This removes saved corrections and restores your last submitted details and documents. Your application and decision history are kept.',
+  corrDeleteAction: 'Delete corrections', corrLeaveBody: 'Changes since your last save will be lost. Your saved correction draft will remain available.',
+  corrReload: 'Load latest application', corrReloadHeading: 'Replace your current corrections?', corrReloadBody: 'This replaces your entries with the latest application and saved draft. Unsaved changes will be lost.',
+  corrConflict: 'Your application or draft changed elsewhere. Your entries are still here. Load the latest version before continuing.', corrConfig: 'The correction requirements changed. Load the latest application and review the requested changes.',
+  corrUnavailable: 'Corrections are temporarily unavailable. Your current entries are kept. Please try again.', corrValidation: 'Check the requested details and documents before continuing.',
+  corrNotReturned: 'No corrections are open', corrNotReturnedBody: 'This application is not currently returned for corrections. View your application for its latest status.',
+  corrReview: 'Review your corrections', corrReviewIntro: 'Check the changes below. Earlier decisions remain in your application history.', corrReviewButton: 'Review changes', corrSubmit: 'Resubmit application', corrSubmitting: 'Sending corrections…',
+  corrCurrent: 'Previously submitted', corrNew: 'Your correction', corrUnchanged: 'Unchanged', corrRemoved: 'Removed', corrAdded: 'Added or replaced',
+  corrSuccess: 'Corrections sent for review', corrSuccessBody: 'Your application is pending review again. Your earlier submission and decisions remain in its history.', corrSent: 'Resubmitted',
+  corrLoading: 'Loading your corrections…', corrDraftDeleted: 'Your correction draft was deleted. Last submitted information has been restored.', corrReviewNote: 'Only the requested fields and documents can be changed.',
+} as const

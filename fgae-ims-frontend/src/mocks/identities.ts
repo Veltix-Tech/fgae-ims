@@ -10,6 +10,7 @@ export const accounts: Identity[] = roles.map((role, index) => ({
   grants: [{ role, scope: scopeFor(role, `fictional-person-${index}`) }], accountState: 'ACTIVE', mustChangePassword: false,
 }))
 accounts.push(
+  { id: 'fictional-returned-applicant', name: 'Demo Returned Applicant', email: 'returned@example.test', grants: [], accountState: 'PENDING', mustChangePassword: false },
   { id: 'fictional-applicant', name: 'Demo Applicant', email: 'pending@example.test', grants: [], accountState: 'PENDING', mustChangePassword: false },
   { ...accounts[7]!, id: 'fictional-first-login', email: 'first.login@example.test', grants: [{ role: 'VOLUNTEER', scope: scopeFor('VOLUNTEER', 'fictional-first-login') }], mustChangePassword: true },
   { ...accounts[7]!, email: 'multi.role@example.test', grants: [...accounts[7]!.grants, { role: 'MEMBER', scope: scopeFor('MEMBER', accounts[7]!.id) }] },

@@ -3,7 +3,7 @@ export const application = {
   appIntro: 'Your submission, progress and decisions, together in one place.', appLink: 'View my application',
   appPending: 'Awaiting review', appReturned: 'Changes requested', appApproved: 'Approved', appRejected: 'Not approved',
   appPendingNote: 'Your application has been received and is waiting for review. No action is needed from you right now.',
-  appReturnedNote: 'Review the feedback in your application history. To provide corrections, contact your FGAE administrator.',
+  appReturnedNote: 'Review the feedback in your application history and make the requested changes.',
   appApprovedNote: 'Your application has been approved. Account access is managed separately; contact your FGAE administrator if you need help getting started.',
   appRejectedNote: 'Your application was not approved. Read the decision below and contact your FGAE administrator if you have questions.',
   appReference: 'Application reference', appSubmitted: 'Submitted', appUpdated: 'Last updated', appRefresh: 'Refresh status', appRefreshing: 'Checking status…',
