@@ -1,6 +1,8 @@
+import { application } from './application'
 import { registration } from './registration'
 export const en = {
   ...registration,
+  ...application,
   firstTitle: 'Set your password · FGAE IMS', firstSkip: 'Skip to password setup', firstEyebrow: 'FIRST SIGN-IN',
   firstHeading: 'Make this account yours', firstIntro: 'Replace your temporary password with one only you know. You’ll sign in again with your new password.',
   firstCheckingHeading: 'Checking your account', firstCurrent: 'Temporary password', firstCurrentRequired: 'Enter the temporary password you used to sign in.',
@@ -68,7 +70,7 @@ export const en = {
   INVALID_RESPONSE: 'We couldn’t confirm your account details. Please try again or contact your administrator.',
   STORAGE_UNAVAILABLE: 'Your browser couldn’t save this session. Allow site storage and try again.',
   signedIn: 'You’re signed in', workspace: 'Your account is ready. Your workspace is not available yet.',
-  application: 'Your application is awaiting review. Your application page is not available yet.',
+  application: 'View your application for its current status and decision history.',
   passwordChange: 'You need to change your temporary password before continuing.',
   noAccess: 'Your account has no workspace access. Contact your FGAE administrator.',
   signOut: 'Sign out', signingOut: 'Signing out…', logoutFailed: 'We couldn’t complete sign out. Please try again.',

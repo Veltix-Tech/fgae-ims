@@ -36,6 +36,10 @@ async function digest(value: string, salt: string) {
   return Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('')
 }
 export function credentialRevision(email: string) { return read().credentials[email.toLowerCase()]?.revision ?? 0 }
+export function readOwnApplication(ownerId: string) {
+  const item = read().applications?.find(application => application.identity.id === ownerId)
+  return item ? structuredClone({ fields: item.fields, documents: item.documents, receipt: item.receipt }) : null
+}
 export function findAccount(email: string) { return accounts.find(item => item.email === email.toLowerCase()) ?? read().applications?.find(item => item.identity.email === email.toLowerCase())?.identity }
 export async function verifyCredential(email: string, password: string) {
   const credential = read().credentials[email.toLowerCase()]

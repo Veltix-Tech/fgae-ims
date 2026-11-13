@@ -14,3 +14,7 @@ declare module '@recovery-adapter' {
 declare module '@reset-adapter' {
   export const resetPasswordService: import('./services/contracts/reset-password').ResetPasswordService
 }
+
+declare module '@application-adapter' {
+  export const applicationService: import('./services/contracts/application').ApplicationService
+}

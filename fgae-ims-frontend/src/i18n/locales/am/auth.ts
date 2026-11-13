@@ -1,7 +1,9 @@
+import { application } from './application'
 import type { TranslationKey } from '../en/auth'
 import { registration } from './registration'
 export const am: Record<TranslationKey, string> = {
   ...registration,
+  ...application,
   firstTitle: 'የይለፍ ቃል ማዘጋጀት · FGAE IMS', firstSkip: 'ወደ የይለፍ ቃል ማዘጋጃ ዝለል', firstEyebrow: 'የመጀመሪያ መግቢያ',
   firstHeading: 'የራስዎን የይለፍ ቃል ያዘጋጁ', firstIntro: 'ጊዜያዊ የይለፍ ቃልዎን እርስዎ ብቻ በሚያውቁት ይተኩ. ከዚያ በአዲሱ የይለፍ ቃል እንደገና ይግቡ.',
   firstCheckingHeading: 'መለያዎን በማረጋገጥ ላይ', firstCurrent: 'ጊዜያዊ የይለፍ ቃል', firstCurrentRequired: 'ለመግባት የተጠቀሙበትን ጊዜያዊ የይለፍ ቃል ያስገቡ.',
@@ -69,7 +71,7 @@ export const am: Record<TranslationKey, string> = {
   INVALID_RESPONSE: 'የመለያዎን መረጃ ማረጋገጥ አልቻልንም. እንደገና ይሞክሩ ወይም አስተዳዳሪዎን ያነጋግሩ.',
   STORAGE_UNAVAILABLE: 'አሳሽዎ ይህን ክፍለ ጊዜ ማስቀመጥ አልቻለም. የድረ ገጽ ማከማቻን ፈቅደው እንደገና ይሞክሩ.',
   signedIn: 'ገብተዋል', workspace: 'መለያዎ ዝግጁ ነው. የሥራ ገጽዎ ገና አልተዘጋጀም.',
-  application: 'ማመልከቻዎ ግምገማን እየጠበቀ ነው. የማመልከቻ ገጽዎ ገና አልተዘጋጀም.',
+  application: 'የአሁኑን ሁኔታ እና የውሳኔ ታሪክ ለማየት ማመልከቻዎን ይመልከቱ.',
   passwordChange: 'ከመቀጠልዎ በፊት ጊዜያዊ የይለፍ ቃልዎን መቀየር አለብዎት.',
   noAccess: 'መለያዎ የሥራ ገጽ መዳረሻ የለውም. የማህበሩን አስተዳዳሪ ያነጋግሩ.',
   signOut: 'ውጣ', signingOut: 'በመውጣት ላይ…', logoutFailed: 'መውጣትን ማጠናቀቅ አልቻልንም. እባክዎ እንደገና ይሞክሩ.',

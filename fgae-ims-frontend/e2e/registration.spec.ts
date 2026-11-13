@@ -75,6 +75,12 @@ for (const locale of ['en', 'am'] as const) {
       await expect(page.getByRole('heading', { name: copy.signedIn })).toBeVisible()
       await expect(page.getByText(copy.application, { exact: true })).toBeVisible()
       await expect(page.locator('.role-list')).toHaveCount(0)
+      await page.getByRole('link', { name: copy.appLink }).click()
+      await expect(page.getByRole('heading', { name: copy.appPending, exact: true })).toBeVisible()
+      await expect(page.locator('.application-details')).toContainText('ሐና አበበ')
+      await expect(page.locator('.application-files')).toContainText(proof.name)
+      await page.reload()
+      await expect(page.locator('.application-details')).toContainText(email)
     })
   }
 }

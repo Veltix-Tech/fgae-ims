@@ -1,0 +1,58 @@
+.application-layout { width: min(1120px, 90%); margin: 0 auto; padding: 36px 0 48px; flex: 1; }
+.application-heading { display: flex; gap: 24px; justify-content: space-between; align-items: flex-start; }
+.application-heading h1 { margin-top: 12px; }
+.application-heading .form-subtitle { margin-bottom: 24px; }
+.application-signout { width: auto; flex: none; gap: 8px; }
+.application-owner { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-bottom: 20px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.application-owner span:first-child { color: var(--ink); font-weight: 650; }
+.application-status { display: flex; gap: 22px; padding: 30px; border: 1px solid var(--divider); border-top: 3px solid var(--sky); background: var(--pale-sky); border-radius: 12px; }
+.application-status-icon { flex: none; color: var(--action); padding-top: 4px; }
+.application-status h2 { font-size: 24px; font-weight: 650; margin: 6px 0 10px; }
+.application-status p:last-child { color: var(--muted); max-width: 740px; }
+.status-approved { background: #f0faf5; border-top-color: #19754e; }
+.status-approved .application-status-icon { color: #19754e; }
+.status-returned, .status-rejected { background: #fff9ee; border-top-color: #9a6500; }
+.application-meta { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 22px; margin: 24px 0 30px; }
+.application-meta dt, .application-details dt { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.application-meta dd, .application-details dd { margin: 0; font-size: 13px; font-weight: 550; overflow-wrap: anywhere; }
+.application-columns { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start; }
+.application-information { display: grid; gap: 18px; }
+.application-card { padding: 24px; border: 1px solid var(--divider); border-radius: 12px; background: var(--surface); }
+.application-card summary, .application-card h2 { font-size: 15px; font-weight: 650; }
+.application-card summary { cursor: pointer; padding: 4px 0; min-height: 32px; }
+.application-card summary::marker { color: var(--action); }
+.application-details { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin: 24px 0 0; animation: language-expand .2s ease-out; }
+.application-count { display: inline-block; background: var(--pale-sky); border-radius: 20px; min-width: 24px; text-align: center; font-size: 11px; margin-left: 10px; color: var(--action); }
+.application-muted { color: var(--muted); font-size: 11px; margin-top: 12px; }
+.application-files { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 16px; }
+.application-files li { display: flex; gap: 12px; overflow-wrap: anywhere; }
+.application-files svg { color: var(--action); flex: none; }
+.application-files strong { font-size: 12px; font-weight: 550; }
+.application-files p { color: var(--muted); font-size: 11px; }
+.application-history ol { list-style: none; padding: 0 0 0 8px; margin: 26px 0 0; }
+.application-history li { position: relative; border-left: 1px solid var(--divider); padding: 0 0 30px 24px; }
+.application-history li:last-child { border-left-color: transparent; padding-bottom: 0; }
+.timeline-dot { position: absolute; left: -5px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: #6a8191; border: 2px solid white; }
+.latest .timeline-dot { background: var(--action); box-shadow: 0 0 0 4px var(--pale-sky); }
+.application-history h3 { font-size: 13px; font-weight: 600; }
+.application-history time { font-size: 11px; color: var(--muted); }
+.decision-note { margin-top: 12px; padding: 12px; background: var(--canvas); border-radius: 6px; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.application-refresh { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 28px; }
+.application-refresh .secondary { width: auto; gap: 8px; }
+.application-refresh p { font-size: 11px; color: var(--muted); }
+.application-state { max-width: 600px; padding: 28px; border: 1px solid var(--divider); background: white; border-radius: 12px; }
+.application-state h2 { font-size: 20px; }
+.application-state p { color: var(--muted); margin: 12px 0 24px; }
+.application-state .primary { max-width: 340px; }
+@media (max-width: 700px) {
+  .application-layout { width: 90%; padding-top: 24px; }
+  .application-heading { flex-direction: column; gap: 0; margin-bottom: 20px; }
+  .application-signout { min-height: 44px; }
+  .application-status { padding: 22px 18px; gap: 14px; }
+  .application-status h2 { font-size: 21px; }
+  .application-meta, .application-columns { grid-template-columns: 1fr; }
+  .application-meta { gap: 16px; }
+  .application-card { padding: 20px; }
+  .application-details { grid-template-columns: 1fr; gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .application-details { animation: none; } }

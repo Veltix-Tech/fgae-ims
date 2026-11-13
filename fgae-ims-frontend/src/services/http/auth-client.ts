@@ -1,6 +1,7 @@
 import { AuthError, type AuthErrorCode } from '../contracts/auth'
 import { envelope } from '../adapters/auth-dto'
 import { FirstLoginError, type FirstLoginErrorCode, type FirstLoginInput } from '../contracts/first-login'
+import { ApplicationError } from '../contracts/application'
 
 const knownErrors = new Set<AuthErrorCode>(['INVALID_CREDENTIALS', 'INACTIVE_ACCOUNT', 'NETWORK',
   'UNAVAILABLE', 'RATE_LIMITED', 'SESSION_EXPIRED'])
@@ -20,7 +21,7 @@ export class AuthClient {
     try {
       const fetcher = this.fetcher
       return await fetcher(`${this.baseUrl}${path}`, {
-        method, credentials: 'include', signal,
+        method, credentials: 'include', cache: 'no-store', signal,
         headers: { ...extraHeaders, ...(body ? { 'Content-Type': 'application/json' } : {}),
           ...(this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {}) },
         ...(body ? { body: JSON.stringify(body) } : {}),
@@ -75,6 +76,19 @@ export class AuthClient {
     // C-AUTH-04 is proposed: backend must revoke its refresh cookie, not just the memory token.
     try { await this.parse(await this.request('/auth/logout', 'POST')) }
     finally { this.clear() }
+  }
+  async ownApplication(signal?: AbortSignal) {
+    const generation = this.generation
+    const send = () => this.request('/volunteers/applications/me', 'GET', undefined, signal)
+    let response = await send()
+    if (response.status === 401) { await this.refresh(); response = await send() }
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new ApplicationError('SESSION_EXPIRED')
+    if (response.status === 403) throw new ApplicationError('FORBIDDEN')
+    const data = await this.parse(response)
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new ApplicationError('SESSION_EXPIRED')
+    return data
   }
   async replaceTemporaryPassword(input: FirstLoginInput, signal?: AbortSignal) {
     const generation = this.generation

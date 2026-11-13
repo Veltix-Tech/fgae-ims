@@ -1,0 +1,21 @@
+import type { application as en } from '../en/application'
+export const application: Record<keyof typeof en, string> = {
+  appTitle: 'ማመልከቻዬ · FGAE IMS', appSkip: 'ወደ ማመልከቻዬ ዝለል', appHeading: 'ማመልከቻዬ', appEyebrow: 'የበጎ ፈቃደኝነት ጉዞዎ',
+  appIntro: 'ያስገቡትን መረጃ፣ ሂደቱን እና ውሳኔዎችን በአንድ ቦታ ይመልከቱ.', appLink: 'ማመልከቻዬን አሳይ',
+  appPending: 'ግምገማ በመጠባበቅ ላይ', appReturned: 'ማስተካከያ ተጠይቋል', appApproved: 'ጸድቋል', appRejected: 'አልጸደቀም',
+  appPendingNote: 'ማመልከቻዎ ደርሷል፤ ግምገማ እየጠበቀ ነው. በአሁኑ ጊዜ ከእርስዎ የሚጠበቅ እርምጃ የለም.',
+  appReturnedNote: 'በማመልከቻዎ ታሪክ ውስጥ ያለውን አስተያየት ይመልከቱ. ማስተካከያ ለማቅረብ የFGAE አስተዳዳሪዎን ያነጋግሩ.',
+  appApprovedNote: 'ማመልከቻዎ ጸድቋል. የመለያ መዳረሻ በተለየ ሁኔታ ይተዳደራል፤ ለመጀመር እገዛ ከፈለጉ የFGAE አስተዳዳሪዎን ያነጋግሩ.',
+  appRejectedNote: 'ማመልከቻዎ አልጸደቀም. ከታች ያለውን ውሳኔ ያንብቡ፤ ጥያቄ ካለዎት የFGAE አስተዳዳሪዎን ያነጋግሩ.',
+  appReference: 'የማመልከቻ ማጣቀሻ', appSubmitted: 'የቀረበበት ጊዜ', appUpdated: 'መጨረሻ የተዘመነበት', appRefresh: 'ሁኔታውን አድስ', appRefreshing: 'ሁኔታው እየተፈተሸ ነው…',
+  appChecked: 'መጨረሻ የተፈተሸበት', appTimeNote: 'ቀኖች በጎርጎርዮሳዊ የቀን አቆጣጠር ናቸው. ሰዓቶች በአዲስ አበባ የጊዜ ክልል ይታያሉ.',
+  appDetails: 'የቀረቡ ዝርዝሮች', appDocuments: 'የቀረቡ ሰነዶች', appNoDocuments: 'ከዚህ ማመልከቻ ጋር የተያያዙ ሰነዶች የሉም.',
+  appDocumentNote: 'ይህ ዝርዝር ከማመልከቻዎ ጋር ያቀረቧቸውን ፋይሎች ያሳያል.', appHistory: 'የማመልከቻ ታሪክ',
+  appEventPending: 'ለግምገማ ቀርቧል', appEventReturned: 'ማስተካከያዎች ተጠይቀዋል', appEventApproved: 'ማመልከቻው ጸድቋል', appEventRejected: 'ማመልከቻው አልጸደቀም',
+  appNoValue: 'አልተሰጠም', appEmpty: 'ማመልከቻ አልተገኘም', appEmptyNote: 'ከዚህ መለያ ጋር የተያያዘ ማመልከቻ የለም. ከዚህ በፊት አመልክተው ከሆነ የFGAE አስተዳዳሪዎን ያነጋግሩ.',
+  appSignIn: 'ማመልከቻዎን ለማየት ይግቡ', appSignInNote: 'ከማመልከቻዎ ጋር የተያያዘውን መለያ ይጠቀሙ. የመግቢያ ጊዜዎ ካበቃ እንደገና ይግቡ.',
+  appDenied: 'ይህ መለያ ይህን ገጽ ማየት አይችልም', appDeniedNote: 'ማመልከቻዬ ለአመልካቾች እና የራሳቸውን ማመልከቻ ለሚመለከቱ በጎ ፈቃደኞች ነው. ለመቀጠል ወደ መለያዎ ይመለሱ.',
+  appError: 'ማመልከቻዎን መጫን አልቻልንም', appUnavailable: 'ማመልከቻዎን መጫን አልተቻለም. እባክዎ እንደገና ይሞክሩ.', appRetry: 'እንደገና ሞክር',
+  appAccount: 'ወደ መለያዬ ተመለስ', appHelp: 'በማመልከቻዎ ላይ እገዛ ይፈልጋሉ?', appHelpNote: 'የማመልከቻ ማጣቀሻዎን በመጥቀስ የFGAE አስተዳዳሪዎን ያነጋግሩ. የይለፍ ቃልዎን ለማንም አያጋሩ.',
+  appFileSize: 'የፋይል መጠን',
+}

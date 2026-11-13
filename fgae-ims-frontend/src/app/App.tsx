@@ -1,3 +1,4 @@
+import { MyApplication } from '../features/applications/MyApplication'
 import { ClipboardTextIcon, UsersThreeIcon, HandshakeIcon } from '@phosphor-icons/react'
 import { useLocale } from '../i18n/locale'
 import { SignIn } from '../features/auth/SignIn'
@@ -7,16 +8,17 @@ import { ResetPassword } from '../features/auth/ResetPassword'
 import { FirstLogin } from '../features/auth/FirstLogin'
 import { Register } from '../features/auth/Register'
 
-export function App({ protectedEntry = false, page = 'sign-in', resetToken = '' }: { protectedEntry?: boolean; page?: 'sign-in' | 'recovery' | 'reset' | 'first' | 'register'; resetToken?: string }) {
+export function App({ protectedEntry = false, page = 'sign-in', resetToken = '' }: { protectedEntry?: boolean; page?: 'sign-in' | 'recovery' | 'reset' | 'first' | 'register' | 'application'; resetToken?: string }) {
   const { t } = useLocale()
-  const headingId = page === 'register' ? 'register-heading' : page === 'first' ? 'first-heading' : page === 'reset' ? 'reset-heading' : page === 'recovery' ? 'recovery-heading' : 'sign-in-heading'
+  const headingId = page === 'application' ? 'application-heading' : page === 'register' ? 'register-heading' : page === 'first' ? 'first-heading' : page === 'reset' ? 'reset-heading' : page === 'recovery' ? 'recovery-heading' : 'sign-in-heading'
   return <>
-    <a className="skip-link" href={`#${headingId}`}>{t(page === 'register' ? 'regSkip' : page === 'first' ? 'firstSkip' : page === 'reset' ? 'resetSkip' : page === 'recovery' ? 'recoverySkip' : 'skip')}</a>
+    <a className="skip-link" href={`#${headingId}`}>{t(page === 'application' ? 'appSkip' : page === 'register' ? 'regSkip' : page === 'first' ? 'firstSkip' : page === 'reset' ? 'resetSkip' : page === 'recovery' ? 'recoverySkip' : 'skip')}</a>
     <header className="site-header motion-enter">
       <div className="brand"><img src="/brand/mark.svg" width="46" height="46" alt="" /><div><span className="wordmark">FGAE<span className="wordmark-divider">/</span><span className="ims">IMS</span></span><p>{t('organization')}</p></div></div>
       <LanguageSelector />
     </header>
-    <main className="auth-layout">
+    <main className={page === 'application' ? 'application-layout' : 'auth-layout'}>
+      {page === 'application' ? <MyApplication /> : <>
       <section className="welcome-panel motion-enter" aria-labelledby="welcome-heading">
         <p className="eyebrow">{t('eyebrow')}</p>
         <h2 id="welcome-heading">{t('headline')}</h2>
@@ -29,6 +31,7 @@ export function App({ protectedEntry = false, page = 'sign-in', resetToken = '' 
         <div className="panel-bottom"><span className="blue-line" aria-hidden="true" /><p>{t('internal')}</p></div>
       </section>
       <div className="form-panel motion-enter">{page === 'register' ? <Register /> : page === 'first' ? <FirstLogin /> : page === 'reset' ? <ResetPassword token={resetToken} /> : page === 'recovery' ? <ForgotPassword /> : <SignIn protectedEntry={protectedEntry} />}</div>
+      </>}
     </main>
     <footer className="site-footer"><span>{t('footer')}</span><span>{t('footerNote')}</span></footer>
   </>
