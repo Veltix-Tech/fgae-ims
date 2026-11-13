@@ -22,3 +22,7 @@ declare module '@application-adapter' {
 declare module '@correction-adapter' {
   export const correctionService: import('./services/contracts/corrections').CorrectionService
 }
+
+declare module '@account-adapter' {
+  export const accountService: import('./services/contracts/account').AccountService
+}

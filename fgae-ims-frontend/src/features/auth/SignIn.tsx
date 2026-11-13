@@ -1,3 +1,4 @@
+import { canManageAccount } from '../../services/contracts/account'
 import { canReadOwnApplication } from '../../services/contracts/application'
 import { Button } from '../../components/Button'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
@@ -129,6 +130,7 @@ export function SignIn({ service = authService, protectedEntry = false }: { serv
       {identity.grants.length > 0 && <div className="role-list"><span className="small-label">{t('rolesLabel')}</span><p>{[...new Set(identity.grants.map(g => g.role))].map(role => t(role)).join(' · ')}</p></div>}
       {nextJourney(identity) === 'password-change' && <a href="/first-login" className="primary action-link first-continue">{t('firstContinue')}<ArrowRightIcon size={20} aria-hidden="true" /></a>}
       {canReadOwnApplication(identity) && <a href="/my-application" className="primary action-link first-continue">{t('appLink')}<ArrowRightIcon size={20} aria-hidden="true" /></a>}
+      {canManageAccount(identity) && <a href="/account" className="secondary action-link first-continue">{t('acctLink')}</a>}
       <Button className="primary" disabled={busy === 'logout'} onClick={() => void signOut()}>{t(busy === 'logout' ? 'signingOut' : 'signOut')}<SignOutIcon size={20} aria-hidden="true" /></Button>
     </div> : <form onSubmit={event => void submit(event)} noValidate aria-busy={busy === 'login'}>
       {protectedEntry && !error && <p className="entry-notice">{t('sessionNotice')}</p>}

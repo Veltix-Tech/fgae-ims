@@ -1,3 +1,4 @@
+import { AccountError, accountCodes } from '../contracts/account'
 import { AuthError, type AuthErrorCode } from '../contracts/auth'
 import { envelope } from '../adapters/auth-dto'
 import { FirstLoginError, type FirstLoginErrorCode, type FirstLoginInput } from '../contracts/first-login'
@@ -93,8 +94,14 @@ export class AuthClient {
     return data
   }
   async correction(suffix: string, method: string, body?: unknown, signal?: AbortSignal, options: { key?: string; progress?: (percent: number) => void; blob?: boolean } = {}) {
+    return this.featureRequest('corrections', suffix, method, body, signal, options)
+  }
+  async accountRequest(suffix: string, method: string, body?: unknown, signal?: AbortSignal, options: { key?: string; progress?: (percent: number) => void; blob?: boolean } = {}) {
+    return this.featureRequest('account', suffix, method, body, signal, options)
+  }
+  private async featureRequest(feature: 'account' | 'corrections', suffix: string, method: string, body?: unknown, signal?: AbortSignal, options: { key?: string; progress?: (percent: number) => void; blob?: boolean } = {}) {
     const generation = this.generation
-    const path = `/volunteers/applications/me/corrections${suffix}`
+    const path = feature === 'account' ? `/account/me${suffix}` : `/volunteers/applications/me/corrections${suffix}`
     const send = () => body instanceof FormData ? new Promise<Response>((resolve, reject) => {
       const xhr = new XMLHttpRequest(); xhr.open(method, `${this.baseUrl}${path}`); xhr.withCredentials = true; xhr.responseType = 'blob'
       if (this.accessToken) xhr.setRequestHeader('Authorization', `Bearer ${this.accessToken}`)
@@ -112,6 +119,10 @@ export class AuthClient {
     if (generation !== this.generation) throw new CorrectionError('SESSION_EXPIRED')
     if (!response.ok) {
       const dto = await response.json().catch(() => null) as { code?: typeof correctionCodes[number]; fields?: Record<string, string> } | null
+      if (feature === 'account') {
+        const code = dto?.code as typeof accountCodes[number] | undefined
+        throw new AccountError(response.status === 401 ? 'SESSION_EXPIRED' : response.status === 403 ? 'FORBIDDEN' : code && accountCodes.includes(code) ? code : response.status === 409 ? 'CONFLICT' : response.status === 429 ? 'RATE_LIMITED' : 'UNAVAILABLE')
+      }
       const fields: Partial<Record<PersonField, string>> = {}
       const messages: Record<string, string> = { REQUIRED: 'regRequired', INVALID_PHONE: 'regPhoneInvalid', INVALID_NAME: 'regNameInvalid', INVALID_DATE: 'regDateInvalid', INVALID_BRANCH: 'regBranchInvalid' }
       for (const [field, code] of Object.entries(dto?.fields ?? {})) if (['fullName', 'phone', 'birthDate', 'gender', 'branchId'].includes(field) && messages[code]) fields[field as PersonField] = messages[code]!

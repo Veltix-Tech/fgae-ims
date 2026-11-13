@@ -1,0 +1,13 @@
+.account-columns { display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: start; }
+.account-fields h2 { margin-bottom: 10px; }
+.account-fields select { width: 100%; min-height: 50px; padding: 10px 12px; border: 1px solid var(--control-border); border-radius: var(--radius); background: white; color: var(--ink); }
+.account-email { margin-bottom: 26px; overflow-wrap: anywhere; }
+.account-photo .uploaded-file img { width: 104px; height: 104px; object-fit: cover; border-radius: 50%; }
+.account-photo .document-card { margin-bottom: 8px; }
+.account-actions { display: flex; gap: 12px; margin: 24px 0 32px; }
+.account-actions .primary { max-width: 280px; }
+.account-security { max-width: 640px; }
+.account-security[open] > .step-intro { margin-top: 18px; }
+.account-security[open] form { animation: enter-up var(--motion-state) var(--ease-out); }
+.account-retry { max-width: 400px; }
+@media (max-width: 700px) { .account-columns { grid-template-columns: minmax(0, 1fr); gap: 20px; } .account-actions { flex-direction: column; } .account-actions .primary { max-width: none; } }

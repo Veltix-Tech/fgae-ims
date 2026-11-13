@@ -3,13 +3,14 @@ import { accounts } from './identities'
 import { FirstLoginError, type FirstLoginInput } from '../services/contracts/first-login'
 import { type Identity } from '../services/contracts/auth'
 import { RegistrationError, normalizePhone, type RegistrationInput, type RegistrationReceipt } from '../services/contracts/registration'
+import { AccountError, accountFields, canManageAccount, type AccountInput, type AccountProfile } from '../services/contracts/account'
 
 const STORE = 'fgae.synthetic.credentials.v1'
 const INITIAL_PASSWORD = 'Demo-only-2026!'
-type Credential = { salt: string; digest: string; revision: number; firstLogin?: { key: string; digest: string; previousRevision: number } }
+type Credential = { salt: string; digest: string; revision: number; firstLogin?: { key: string; digest: string; previousRevision: number }; passwordChange?: { key: string; digest: string; previousRevision: number } }
 type Link = { token: string; email: string; expiresAt: number; usedAt?: number; completionKey?: string; completionDigest?: string }
 type Application = { identity: Identity; fields: RegistrationInput['fields']; documents: RegistrationInput['documents']; receipt: RegistrationReceipt; key: string; digest: string }
-type State = { version: 1; credentials: Record<string, Credential>; links: Link[]; applications?: Application[] }
+type State = { version: 1; credentials: Record<string, Credential>; links: Link[]; applications?: Application[]; profiles?: Record<string, AccountProfile> }
 function read(): State {
   try {
     const raw = localStorage.getItem(STORE)
@@ -40,7 +41,48 @@ export function readOwnApplication(ownerId: string) {
   const item = read().applications?.find(application => application.identity.id === ownerId)
   return item ? structuredClone({ fields: item.fields, documents: item.documents, receipt: item.receipt }) : null
 }
-export function findAccount(email: string) { return accounts.find(item => item.email === email.toLowerCase()) ?? read().applications?.find(item => item.identity.email === email.toLowerCase())?.identity }
+export function findAccount(email: string) {
+  const state = read(); const identity = accounts.find(item => item.email === email.toLowerCase()) ?? state.applications?.find(item => item.identity.email === email.toLowerCase())?.identity
+  return identity ? { ...identity, name: state.profiles?.[identity.id]?.name ?? identity.name } : undefined
+}
+export function readProfile(identity: Identity): AccountProfile {
+  const state = read()
+  return structuredClone(state.profiles?.[identity.id] ?? { ownerId: identity.id, version: 1, name: identity.name, phone: state.applications?.find(item => item.identity.id === identity.id)?.fields.phone ?? '', locale: 'en', photo: null, editableFields: ['name', 'phone'] })
+}
+export async function saveProfile(input: AccountInput, guard: () => Promise<Identity>, signal?: AbortSignal) {
+  return locked(async () => {
+    const identity = await guard(); signal?.throwIfAborted()
+    if (identity.id !== input.ownerId) throw new AccountError('FORBIDDEN')
+    const current = readProfile(identity)
+    if (current.version !== input.version) throw new AccountError('CONFLICT')
+    if (Object.values(accountFields(input)).some(Boolean) || !['en', 'am'].includes(input.locale)) throw new AccountError('VALIDATION')
+    for (const field of ['name', 'phone'] as const) if (!current.editableFields.includes(field) && input[field] !== current[field]) throw new AccountError('FORBIDDEN')
+    const next = { ...current, name: input.name.trim(), phone: normalizePhone(input.phone), locale: input.locale, photo: input.photo, version: current.version + 1 }
+    const state = read(); state.profiles = { ...state.profiles, [identity.id]: next }; write(state); return structuredClone(next)
+  })
+}
+export async function changeAccountPassword(input: FirstLoginInput, getSession: () => { email: string; expiresAt: number; credentialRevision?: number } | null, signal?: AbortSignal) {
+  if (!validNewPassword(input.password)) throw new AccountError('PASSWORD_REJECTED')
+  if (input.password !== input.confirmation) throw new AccountError('CONFIRMATION_MISMATCH')
+  return locked(async () => {
+    signal?.throwIfAborted(); const session = getSession()
+    if (!session || session.expiresAt <= Date.now()) throw new AccountError('SESSION_EXPIRED')
+    const identity = findAccount(session.email); const state = read(); const previous = state.credentials[session.email]
+    if (!identity || !canManageAccount({ ...identity, mustChangePassword: identity.mustChangePassword && !previous?.revision })) throw new AccountError('FORBIDDEN')
+    const payload = await digest(JSON.stringify([input.currentPassword, input.password, input.confirmation]), input.idempotencyKey)
+    signal?.throwIfAborted()
+    if (previous?.passwordChange?.key === input.idempotencyKey && previous.passwordChange.digest === payload && previous.passwordChange.previousRevision === (session.credentialRevision ?? 0)) return
+    if ((session.credentialRevision ?? 0) !== (previous?.revision ?? 0)) throw new AccountError('SESSION_EXPIRED')
+    if (!await verifyCredential(session.email, input.currentPassword)) throw new AccountError('WRONG_PASSWORD')
+    if (input.currentPassword === input.password) throw new AccountError('SAME_PASSWORD')
+    const salt = crypto.randomUUID(); const verifier = await digest(input.password, salt)
+    signal?.throwIfAborted(); const current = getSession()
+    if (!current || current.email !== session.email || current.expiresAt !== session.expiresAt || current.expiresAt <= Date.now() || current.credentialRevision !== session.credentialRevision) throw new AccountError('SESSION_EXPIRED')
+    state.credentials[session.email] = { salt, digest: verifier, revision: (previous?.revision ?? 0) + 1, passwordChange: { key: input.idempotencyKey, digest: payload, previousRevision: session.credentialRevision ?? 0 } }
+    state.links = state.links.map(link => link.email === session.email && !link.usedAt ? { ...link, usedAt: Date.now() } : link)
+    write(state)
+  })
+}
 export async function verifyCredential(email: string, password: string) {
   const credential = read().credentials[email.toLowerCase()]
   return credential ? await digest(password, credential.salt) === credential.digest : password === INITIAL_PASSWORD

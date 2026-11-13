@@ -1,6 +1,14 @@
 .registration { width: min(100%, 520px); }
-.auth-layout:has(.registration) { max-height: none; }
-.auth-layout:has(.registration) .form-panel { align-items: flex-start; }
+.auth-layout:has(.registration) { max-height: none; align-items: start; padding-top: 28px; }
+.auth-layout:has(.registration) .welcome-panel { align-self: start; }
+.auth-layout:has(.registration) .form-panel { align-items: flex-start; padding-top: 0; }
+.registration .back-link { margin-bottom: 16px; }
+.registration .recovery-icon { margin-bottom: 16px; }
+.registration .form-subtitle { margin-bottom: 20px; }
+.registration .registration-steps { margin-top: 16px; margin-bottom: 20px; }
+@media (max-width: 800px) {
+  .auth-layout:has(.registration) .form-panel, .auth-layout:has(.registration) .welcome-panel { width: 100%; }
+}
 .registration-steps { list-style: none; padding: 0; margin: 24px 0 28px; display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--divider); }
 .step-button { background: transparent; color: var(--muted); width: 100%; padding: 12px 3px; border: 0; border-bottom: 3px solid transparent; font-size: 11px; display: flex; flex-direction: column; gap: 7px; align-items: center; }
 .step-button:disabled { cursor: default; }
