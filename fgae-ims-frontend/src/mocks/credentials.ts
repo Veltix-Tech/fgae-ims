@@ -41,6 +41,7 @@ export function readOwnApplication(ownerId: string) {
   const item = read().applications?.find(application => application.identity.id === ownerId)
   return item ? structuredClone({ fields: item.fields, documents: item.documents, receipt: item.receipt }) : null
 }
+export function readRegisteredIdentities() { return structuredClone(read().applications?.map(application => application.identity) ?? []) }
 export function findAccount(email: string) {
   const state = read(); const identity = accounts.find(item => item.email === email.toLowerCase()) ?? state.applications?.find(item => item.identity.email === email.toLowerCase())?.identity
   return identity ? { ...identity, name: state.profiles?.[identity.id]?.name ?? identity.name } : undefined

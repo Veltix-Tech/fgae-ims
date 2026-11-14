@@ -26,3 +26,7 @@ declare module '@correction-adapter' {
 declare module '@account-adapter' {
   export const accountService: import('./services/contracts/account').AccountService
 }
+
+declare module '@overview-adapter' {
+  export const overviewService: import('./services/contracts/overview').OverviewService
+}

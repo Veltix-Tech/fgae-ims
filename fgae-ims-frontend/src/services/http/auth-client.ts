@@ -1,4 +1,5 @@
 import { AccountError, accountCodes } from '../contracts/account'
+import { OverviewError } from '../contracts/overview'
 import { AuthError, type AuthErrorCode } from '../contracts/auth'
 import { envelope } from '../adapters/auth-dto'
 import { FirstLoginError, type FirstLoginErrorCode, type FirstLoginInput } from '../contracts/first-login'
@@ -92,6 +93,19 @@ export class AuthClient {
     signal?.throwIfAborted()
     if (generation !== this.generation) throw new ApplicationError('SESSION_EXPIRED')
     return data
+  }
+  async adminOverview(signal?: AbortSignal) {
+    const generation = this.generation
+    const send = () => this.request('/workspaces/super-admin/overview', 'GET', undefined, signal)
+    let response = await send()
+    if (response.status === 401) { await this.refresh(); response = await send() }
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new OverviewError('SESSION_EXPIRED')
+    if (response.status === 403) throw new OverviewError('FORBIDDEN')
+    const result = await this.parse(response)
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new OverviewError('SESSION_EXPIRED')
+    return result
   }
   async correction(suffix: string, method: string, body?: unknown, signal?: AbortSignal, options: { key?: string; progress?: (percent: number) => void; blob?: boolean } = {}) {
     return this.featureRequest('corrections', suffix, method, body, signal, options)

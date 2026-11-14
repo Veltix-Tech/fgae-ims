@@ -18,17 +18,21 @@ function fixture(identity: Identity): OwnApplication | null {
     ],
   }
 }
-export const applicationService: ApplicationService = {
-  async own(signal) {
-    const identity = await authService.restore(signal)
-    if (!identity) throw new ApplicationError('SESSION_EXPIRED')
-    if (!canReadOwnApplication(identity)) throw new ApplicationError('FORBIDDEN')
+export function readApplication(identity: Identity) {
     const stored = readOwnApplication(identity.id)
     const application: OwnApplication | null = readWorkflow(identity.id)?.application ?? (stored ? {
       id: stored.receipt.id, ownerId: identity.id, status: 'PENDING', submittedAt: stored.receipt.submittedAt, updatedAt: stored.receipt.submittedAt,
       fields: stored.fields, documents: stored.documents, branchName: stored.fields.branchId === 'fictional-branch-a' ? 'Demo branch A' : stored.fields.branchId === 'fictional-branch-b' ? 'Demo branch B' : stored.fields.branchId,
       history: [{ id: `${stored.receipt.id}-submitted`, status: 'PENDING', at: stored.receipt.submittedAt, note: '' }],
     } : fixture(identity))
+    return mapOwnApplication(application, identity.id)
+}
+export const applicationService: ApplicationService = {
+  async own(signal) {
+    const identity = await authService.restore(signal)
+    if (!identity) throw new ApplicationError('SESSION_EXPIRED')
+    if (!canReadOwnApplication(identity)) throw new ApplicationError('FORBIDDEN')
+    const application = readApplication(identity)
     signal?.throwIfAborted()
     return { identity, application: mapOwnApplication(application, identity.id) }
   },

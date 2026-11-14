@@ -1,3 +1,4 @@
+import { overview } from './overview'
 import { account } from './account'
 import { corrections } from './corrections'
 import { application } from './application'
@@ -7,6 +8,7 @@ export const en = {
   ...application,
   ...corrections,
   ...account,
+  ...overview,
   firstTitle: 'Set your password · FGAE IMS', firstSkip: 'Skip to password setup', firstEyebrow: 'FIRST SIGN-IN',
   firstHeading: 'Make this account yours', firstIntro: 'Replace your temporary password with one only you know. You’ll sign in again with your new password.',
   firstCheckingHeading: 'Checking your account', firstCurrent: 'Temporary password', firstCurrentRequired: 'Enter the temporary password you used to sign in.',
