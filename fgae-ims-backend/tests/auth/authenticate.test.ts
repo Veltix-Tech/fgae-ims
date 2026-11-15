@@ -1,61 +1,82 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { describe, it, expect, vi } from "vitest";
 import type { Request, Response, NextFunction } from "express";
 import { authenticate } from "../../src/middleware/authenticate.js";
+import { AppError } from "../../src/utils/AppError.js";
 import { generateAccessToken } from "../../src/utils/token.js";
 
 describe("Authentication middleware", () => {
-  let req: Request;
-  let res: Response;
-  let next: NextFunction;
-
-  beforeEach(() => {
-    process.env.JWT_ACCESS_SECRET =
-      "test-secret-for-fgae-ims-automated-tests-123456";
-
-    req = {
-      headers: {},
+  const createMocks = (authorization?: string) => {
+    const req = {
+      headers: authorization
+        ? { authorization }
+        : {},
     } as Request;
 
-    res = {
+    const res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis(),
     } as unknown as Response;
 
-    next = vi.fn();
-  });
+    const next = vi.fn() as NextFunction;
+
+    return { req, res, next };
+  };
 
   it("should reject requests without a token", () => {
+    const { req, res, next } = createMocks();
+
     authenticate(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(next).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledOnce();
+
+    const error = next.mock.calls[0][0] as AppError;
+
+    expect(error).toBeInstanceOf(AppError);
+    expect(error.statusCode).toBe(401);
+    expect(error.message).toBe("Authentication required");
+    expect(res.status).not.toHaveBeenCalled();
   });
 
   it("should reject invalid tokens", () => {
-    req.headers.authorization = "Bearer invalid-token";
+    const { req, res, next } = createMocks("Bearer invalid-token");
 
     authenticate(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(next).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledOnce();
+
+    const error = next.mock.calls[0][0] as AppError;
+
+    expect(error).toBeInstanceOf(AppError);
+    expect(error.statusCode).toBe(401);
+    expect(error.message).toBe("Invalid or expired access token");
   });
 
   it("should accept valid tokens", () => {
     const token = generateAccessToken("user-123");
-    req.headers.authorization = `Bearer ${token}`;
+    const { req, next } = createMocks(`Bearer ${token}`);
 
-    authenticate(req, res, next);
+    authenticate(req, {} as Response, next);
 
-    expect(req.auth?.userId).toBe("user-123");
+    expect(req.auth).toEqual({
+      userId: "user-123",
+    });
+
     expect(next).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledWith();
   });
 
   it("should reject incorrect authorization format", () => {
-    req.headers.authorization = "Basic some-token";
+    const { req, res, next } = createMocks("Basic some-token");
 
     authenticate(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(next).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledOnce();
+
+    const error = next.mock.calls[0][0] as AppError;
+
+    expect(error).toBeInstanceOf(AppError);
+    expect(error.statusCode).toBe(401);
+    expect(error.message).toBe("Invalid authorization format");
   });
 });

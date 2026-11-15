@@ -30,14 +30,9 @@ export const authenticateUser = async (
   enteredPassword: string
 ): Promise<LoginResult> => {
   // Check whether the account exists
-  if (!user) {
-    throw new Error("Invalid email or password");
-  }
-
-  // Check whether the account is active
-  if (user.status !== "ACTIVE") {
-    throw new Error("Account is not active");
-  }
+  if (!user || user.status !== "ACTIVE") {
+  throw new Error("Invalid email or password");
+}
 
   // Verify the entered password
   const passwordIsValid = await verifyPassword(
