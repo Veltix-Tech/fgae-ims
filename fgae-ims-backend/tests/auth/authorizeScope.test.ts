@@ -1,21 +1,7 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Request, Response, NextFunction } from "express";
 
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-} from "vitest";
-
-import type {
-  Request,
-  Response,
-  NextFunction,
-} from "express";
-
-import {
-  authorizeScope,
-} from "../../src/middleware/authorizeScope.js";
+import { authorizeScope } from "../../src/middleware/authorizeScope.js";
 
 describe("Organizational scope middleware", () => {
   let req: Request;
@@ -33,11 +19,7 @@ describe("Organizational scope middleware", () => {
       },
     } as unknown as Request;
 
-    res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn().mockReturnThis(),
-    } as unknown as Response;
-
+    res = {} as Response;
     next = vi.fn();
   });
 
@@ -58,7 +40,7 @@ describe("Organizational scope middleware", () => {
       "BRANCH"
     );
 
-    expect(next).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledWith();
   });
 
   it("should reject access outside the user's scope", async () => {
@@ -72,8 +54,11 @@ describe("Organizational scope middleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(next).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: 403,
+      })
+    );
   });
 
   it("should reject unauthenticated users", async () => {
@@ -89,7 +74,12 @@ describe("Organizational scope middleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: 401,
+      })
+    );
+
     expect(checkScope).not.toHaveBeenCalled();
   });
 
@@ -106,14 +96,19 @@ describe("Organizational scope middleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: 400,
+      })
+    );
+
     expect(checkScope).not.toHaveBeenCalled();
   });
 
-  it("should handle scope-checking failures", async () => {
-    const checkScope = vi.fn().mockRejectedValue(
-      new Error("Database error")
-    );
+  it("should forward scope-checking errors", async () => {
+    const error = new Error("Database error");
+
+    const checkScope = vi.fn().mockRejectedValue(error);
 
     const middleware = authorizeScope(
       "BRANCH",
@@ -123,7 +118,6 @@ describe("Organizational scope middleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(next).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(error);
   });
 });

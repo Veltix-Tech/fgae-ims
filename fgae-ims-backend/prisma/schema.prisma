@@ -1,14 +1,321 @@
-datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ORGANIZATION
+
+enum OrganizationalStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Organization {
+  id          String               @id @default(uuid()) @db.Uuid
+  code        String               @unique @db.VarChar(50)
+  name        String               @db.VarChar(150)
+  description String?              @db.Text
+  email       String?              @db.VarChar(255)
+  phone       String?              @db.VarChar(30)
+  website     String?              @db.VarChar(255)
+  address     String?              @db.Text
+  status      OrganizationalStatus @default(ACTIVE)
+
+  areas       Area[]
+  assignments OrganizationalAssignment[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("organizations")
+}
+
+model Area {
+  id             String               @id @default(uuid()) @db.Uuid
+  organizationId String               @db.Uuid
+  code           String               @db.VarChar(50)
+  name           String               @db.VarChar(150)
+  description    String?              @db.Text
+  officeAddress  String?              @db.Text
+  email          String?              @db.VarChar(255)
+  phone          String?              @db.VarChar(30)
+  status         OrganizationalStatus @default(ACTIVE)
+
+  organization Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  branches     Branch[]
+  assignments  OrganizationalAssignment[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@unique([organizationId, code])
+  @@unique([organizationId, name])
+  @@index([organizationId, status])
+  @@map("areas")
+}
+
+model Branch {
+  id          String               @id @default(uuid()) @db.Uuid
+  areaId      String               @db.Uuid
+  code        String               @db.VarChar(50)
+  name        String               @db.VarChar(150)
+  description String?              @db.Text
+  address     String?              @db.Text
+  email       String?              @db.VarChar(255)
+  phone       String?              @db.VarChar(30)
+  status      OrganizationalStatus @default(ACTIVE)
+
+  area        Area                       @relation(fields: [areaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assignments OrganizationalAssignment[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@unique([areaId, code])
+  @@unique([areaId, name])
+  @@index([areaId, status])
+  @@map("branches")
+}
+
+// FIXED SYSTEM ROLES
+
+enum BuiltInRole {
+  SUPER_ADMIN
+  AREA_MANAGER
+  PROJECT_MANAGER
+  BRANCH_MANAGER
+  VOLUNTEER_MANAGER
+  FIELD_SUPERVISOR
+  HR_OFFICER
+  FINANCE_OFFICER
+  VOLUNTEER
+}
+
+model Role {
+  id          String      @id @default(uuid()) @db.Uuid
+  code        BuiltInRole @unique
+  name        String      @db.VarChar(100)
+  description String?     @db.Text
+
+  permissions RolePermission[]
+  userRoles   UserRole[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String  @id @default(uuid()) @db.Uuid
+  key         String  @unique @db.VarChar(120)
+  module      String  @db.VarChar(100)
+  label       String  @db.VarChar(150)
+  description String? @db.Text
+
+  roles RolePermission[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([module])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String @id @default(uuid()) @db.Uuid
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+// USERS AND CREDENTIALS
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id         String     @id @default(uuid()) @db.Uuid
+  email      String     @unique @db.VarChar(255)
+  phone      String?    @unique @db.VarChar(30)
+  firstName  String     @db.VarChar(100)
+  middleName String?    @db.VarChar(100)
+  lastName   String     @db.VarChar(100)
+  status     UserStatus @default(PENDING)
+
+  emailVerifiedAt DateTime? @db.Timestamptz(6)
+  lastLoginAt     DateTime? @db.Timestamptz(6)
+
+  credential                    UserCredential?
+  sessions                      UserSession[]
+  activationTokens              AccountActivationToken[]
+  roleAssignments               UserRole[]
+  assignments                   OrganizationalAssignment[]
+  organizationalAssignmentsMade OrganizationalAssignment[] @relation("OrganizationalAssignmentAssignedBy")
+
+  rolesAssigned UserRole[] @relation("UserRoleAssignedBy")
+  auditLogs     AuditLog[] @relation("AuditActor")
+  targetedLogs  AuditLog[] @relation("AuditTarget")
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([status])
+  @@map("users")
+}
+
+model UserCredential {
+  id           String @id @default(uuid()) @db.Uuid
+  userId       String @unique @db.Uuid
+  passwordHash String @db.VarChar(255)
+
+  passwordChangedAt DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("user_credentials")
+}
+
+// ROLE ASSIGNMENT HISTORY
+
+model UserRole {
+  id           String  @id @default(uuid()) @db.Uuid
+  userId       String  @db.Uuid
+  roleId       String  @db.Uuid
+  assignedById String? @db.Uuid
+
+  assignedAt DateTime  @default(now()) @db.Timestamptz(6)
+  revokedAt  DateTime? @db.Timestamptz(6)
+  reason     String?   @db.Text
+
+  user       User  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  role       Role  @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  assignedBy User? @relation("UserRoleAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  @@index([userId, assignedAt])
+  @@index([roleId])
+  @@index([assignedById])
+  @@map("user_roles")
+}
+
+// ORGANIZATIONAL ACCESS ASSIGNMENTS
+
+model OrganizationalAssignment {
+  id             String  @id @default(uuid()) @db.Uuid
+  userId         String  @db.Uuid
+  organizationId String  @db.Uuid
+  areaId         String? @db.Uuid
+  branchId       String? @db.Uuid
+  assignedById   String? @db.Uuid
+
+  assignedAt DateTime  @default(now()) @db.Timestamptz(6)
+  revokedAt  DateTime? @db.Timestamptz(6)
+  reason     String?   @db.Text
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  area         Area?        @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  branch       Branch?      @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  assignedBy   User?        @relation("OrganizationalAssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  @@index([userId, revokedAt])
+  @@index([organizationId])
+  @@index([areaId])
+  @@index([branchId])
+  @@map("organizational_assignments")
+}
+
+// AUTHENTICATION SESSIONS
+
+model UserSession {
+  id               String @id @default(uuid()) @db.Uuid
+  userId           String @db.Uuid
+  refreshTokenHash String @unique @db.VarChar(255)
+
+  expiresAt  DateTime  @db.Timestamptz(6)
+  revokedAt  DateTime? @db.Timestamptz(6)
+  lastUsedAt DateTime? @db.Timestamptz(6)
+
+  ipAddress String? @db.VarChar(100)
+  userAgent String? @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+  @@map("user_sessions")
+}
+
+// ACCOUNT ACTIVATION
+
+enum ActivationPurpose {
+  ACCOUNT_ACTIVATION
+  PASSWORD_RESET
+  EMAIL_VERIFICATION
+}
+
+model AccountActivationToken {
+  id        String            @id @default(uuid()) @db.Uuid
+  userId    String            @db.Uuid
+  tokenHash String            @unique @db.VarChar(255)
+  purpose   ActivationPurpose
+
+  expiresAt DateTime  @db.Timestamptz(6)
+  usedAt    DateTime? @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([userId, purpose])
+  @@index([expiresAt])
+  @@map("account_activation_tokens")
+}
+
+// AUDIT LOGGING
+
+model AuditLog {
+  id           String  @id @default(uuid()) @db.Uuid
+  actorId      String? @db.Uuid
+  targetUserId String? @db.Uuid
+
+  action     String  @db.VarChar(120)
+  entityType String  @db.VarChar(100)
+  entityId   String? @db.VarChar(100)
+
+  metadata  Json?
+  ipAddress String? @db.VarChar(100)
+  userAgent String? @db.Text
+
+  actor      User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  targetUser User? @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([actorId, createdAt])
+  @@index([targetUserId, createdAt])
+  @@index([entityType, entityId])
+  @@index([action, createdAt])
+  @@map("audit_logs")
 }

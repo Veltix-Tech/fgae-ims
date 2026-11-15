@@ -1,50 +1,33 @@
+import type { Request, RequestHandler } from "express";
+import { AppError } from "../utils/AppError.js";
 
-import type {
-  Request,
-  RequestHandler,
-} from "express";
-
-// Types of organizational resources
 export type ScopeResourceType = "AREA" | "BRANCH";
 
-// Function responsible for checking organizational access
 export type ScopeChecker = (
   userId: string,
   resourceId: string,
   resourceType: ScopeResourceType
 ) => Promise<boolean>;
 
-// Middleware factory for organizational scope checking
 export const authorizeScope = (
   resourceType: ScopeResourceType,
   getResourceId: (req: Request) => string | undefined,
   checkScope: ScopeChecker
 ): RequestHandler => {
   return async (req, res, next) => {
-    // Make sure the user is authenticated
     const userId = req.auth?.userId;
 
     if (!userId) {
-      res.status(401).json({
-        status: "error",
-        message: "Authentication required",
-      });
-      return;
+      return next(new AppError("Authentication required", 401));
     }
 
-    // Get the resource ID from the request
     const resourceId = getResourceId(req);
 
     if (!resourceId) {
-      res.status(400).json({
-        status: "error",
-        message: "Resource ID is required",
-      });
-      return;
+      return next(new AppError("Resource ID is required", 400));
     }
 
     try {
-      // Check whether the resource belongs to the user's scope
       const hasAccess = await checkScope(
         userId,
         resourceId,
@@ -52,19 +35,17 @@ export const authorizeScope = (
       );
 
       if (!hasAccess) {
-        res.status(403).json({
-          status: "error",
-          message: "You cannot access this organizational resource",
-        });
-        return;
+        return next(
+          new AppError(
+            "You cannot access this organizational resource",
+            403
+          )
+        );
       }
 
       next();
-    } catch {
-      res.status(500).json({
-        status: "error",
-        message: "Unable to verify organizational access",
-      });
+    } catch (error) {
+      next(error);
     }
   };
 };
