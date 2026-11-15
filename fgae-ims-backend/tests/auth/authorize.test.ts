@@ -1,25 +1,9 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Request, Response, NextFunction } from "express";
 
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-} from "vitest";
-
-import type {
-  Request,
-  Response,
-  NextFunction,
-} from "express";
-
-import {
-  authorize,
-} from "../../src/middleware/authorize.js";
-
-import {
-  PERMISSIONS,
-} from "../../src/modules/auth/permissions.js";
+import { authorize } from "../../src/middleware/authorize.js";
+import { PERMISSIONS } from "../../src/modules/auth/permissions.js";
+import { AppError } from "../../src/utils/AppError.js";
 
 describe("Authorization middleware", () => {
   let req: Request;
@@ -29,16 +13,10 @@ describe("Authorization middleware", () => {
   beforeEach(() => {
     req = {
       headers: {},
-      auth: {
-        userId: "user-123",
-      },
+      auth: { userId: "user-123" },
     } as Request;
 
-    res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn().mockReturnThis(),
-    } as unknown as Response;
-
+    res = {} as Response;
     next = vi.fn();
   });
 
@@ -56,8 +34,7 @@ describe("Authorization middleware", () => {
       "user-123",
       PERMISSIONS.VOLUNTEER_APPROVE
     );
-
-    expect(next).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledWith();
   });
 
   it("should reject a user without the required permission", async () => {
@@ -70,8 +47,12 @@ describe("Authorization middleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(next).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: 403,
+        message: "You do not have permission to perform this action",
+      })
+    );
   });
 
   it("should reject unauthenticated users", async () => {
@@ -86,14 +67,19 @@ describe("Authorization middleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: 401,
+      })
+    );
+
     expect(checkPermission).not.toHaveBeenCalled();
   });
 
-  it("should return an error if permission checking fails", async () => {
-    const checkPermission = vi.fn().mockRejectedValue(
-      new Error("Database error")
-    );
+  it("should forward permission checking errors", async () => {
+    const error = new Error("Database error");
+
+    const checkPermission = vi.fn().mockRejectedValue(error);
 
     const middleware = authorize(
       PERMISSIONS.VOLUNTEER_APPROVE,
@@ -102,7 +88,6 @@ describe("Authorization middleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(next).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(error);
   });
 });

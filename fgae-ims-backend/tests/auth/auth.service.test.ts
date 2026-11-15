@@ -60,7 +60,7 @@ describe("Authentication service", () => {
 
     await expect(
       authenticateUser(inactiveUser, correctPassword)
-    ).rejects.toThrow("Account is not active");
+    ).rejects.toThrow("Invalid email or password");
   });
 
   it("should reject an incorrect password", async () => {

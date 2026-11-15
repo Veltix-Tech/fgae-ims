@@ -1,8 +1,9 @@
+
 import type { Request, Response } from "express";
 
 // Temporary login controller
 export const login = (
-  req: Request,
+  _req: Request,
   res: Response
 ): void => {
   res.status(200).json({

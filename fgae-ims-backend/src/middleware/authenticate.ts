@@ -1,18 +1,17 @@
-import type { Request, Response, NextFunction } from "express";
-import { verifyAccessToken } from "../utils/token.js";
 
-export const authenticate = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+import type { RequestHandler } from "express";
+import { verifyAccessToken } from "../utils/token.js";
+import { AppError } from "../utils/AppError.js";
+
+export const authenticate: RequestHandler = (
+  req,
+  res,
+  next
+) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    res.status(401).json({
-      status: "error",
-      message: "Authentication required",
-    });
+    next(new AppError("Authentication required", 401));
     return;
   }
 
@@ -20,10 +19,7 @@ export const authenticate = (
   const token = match?.[1]?.trim();
 
   if (!token) {
-    res.status(401).json({
-      status: "error",
-      message: "Invalid authorization format",
-    });
+    next(new AppError("Invalid authorization format", 401));
     return;
   }
 
@@ -36,9 +32,6 @@ export const authenticate = (
 
     next();
   } catch {
-    res.status(401).json({
-      status: "error",
-      message: "Invalid or expired access token",
-    });
+    next(new AppError("Invalid or expired access token", 401));
   }
 };
