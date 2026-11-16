@@ -40,8 +40,8 @@
 
 ## 5. Volunteer model questions
 
-**1. Why is VolunteerApplication.personId not unique, while Volunteer.personId is?**
-A person can apply more than once, for example after a rejection. Each attempt is its own application row, so the history is kept. A Volunteer is the approved profile, and one human should only ever have one volunteer profile and one volunteer number.
+**1. Why is VolunteerApplication.personId unique in the leader's schema, and what does that mean?**
+In the current schema each person can have only one application, and only one volunteer profile. That keeps things simple, but a rejected or cancelled applicant can never apply again, so I added this to decisions.md as a question for the leader. Volunteer.personId is unique for a different reason: one human should have only one volunteer profile and one volunteer number.
 
 **2. Why does VolunteerAttendance use @@id([id, activityDate])?**
 The table is partitioned by activityDate, and PostgreSQL requires the partition column to be part of every primary key or unique constraint on a partitioned table. It can't guarantee that an id alone is unique across all the monthly partitions.
