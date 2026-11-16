@@ -36,3 +36,18 @@
 | 10 | Project Manager requests an allowance; Finance approves and pays | volunteer_attendance, project budgets (not yet defined) | allowance_requests, allowance_disbursements |
 
 ## 4. What I don't understand yet
+
+
+## 5. Volunteer model questions
+
+**1. Why is VolunteerApplication.personId not unique, while Volunteer.personId is?**
+A person can apply more than once, for example after a rejection. Each attempt is its own application row, so the history is kept. A Volunteer is the approved profile, and one human should only ever have one volunteer profile and one volunteer number.
+
+**2. Why does VolunteerAttendance use @@id([id, activityDate])?**
+The table is partitioned by activityDate, and PostgreSQL requires the partition column to be part of every primary key or unique constraint on a partitioned table. It can't guarantee that an id alone is unique across all the monthly partitions.
+
+**3. Why is GPS stored as Decimal(10, 7) and not a float?**
+Decimal is exact, while a float stores a close approximation. Seven decimal places is about 1 cm of precision, and the 10 total digits leave room for three digits before the point, enough for longitudes up to 180.
+
+**4. Why does VolunteerAssignment have both branchId and an optional healthFacilityId?**
+The branch is always known, because it is the office responsible for the volunteer. The facility is optional, because some work happens at the branch itself or at outreach events, and some at a specific clinic under the branch.
