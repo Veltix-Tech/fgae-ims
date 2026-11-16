@@ -5,6 +5,7 @@ import { validate } from "../../src/middleware/validate.js";
 import {
   loginSchema,
   activateSchema,
+  createStaffSchema,
 } from "../../src/modules/auth/auth.validation.js";
 
 describe("Validation middleware", () => {
@@ -67,4 +68,51 @@ describe("Validation middleware", () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(next).not.toHaveBeenCalled();
   });
+
+
+it("should accept valid staff creation information", () => {
+  const { req, res, next } = createMocks({
+    email: "staff@example.com",
+    firstName: "Test",
+    lastName: "Staff",
+    roleCode: "BRANCH_MANAGER",
+    organizationId: "550e8400-e29b-41d4-a716-446655440000",
+    branchId: "550e8400-e29b-41d4-a716-446655440001",
+  });
+
+  validate(createStaffSchema)(req, res, next);
+
+  expect(next).toHaveBeenCalledOnce();
+  expect(res.status).not.toHaveBeenCalled();
+});
+
+it("should reject an unsupported staff role", () => {
+  const { req, res, next } = createMocks({
+    email: "staff@example.com",
+    firstName: "Test",
+    lastName: "Staff",
+    roleCode: "CUSTOM_ADMIN",
+    organizationId: "550e8400-e29b-41d4-a716-446655440000",
+  });
+
+  validate(createStaffSchema)(req, res, next);
+
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(next).not.toHaveBeenCalled();
+});
+
+it("should reject staff creation without an organization ID", () => {
+  const { req, res, next } = createMocks({
+    email: "staff@example.com",
+    firstName: "Test",
+    lastName: "Staff",
+    roleCode: "BRANCH_MANAGER",
+  });
+
+  validate(createStaffSchema)(req, res, next);
+
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(next).not.toHaveBeenCalled();
+});
+
 });
