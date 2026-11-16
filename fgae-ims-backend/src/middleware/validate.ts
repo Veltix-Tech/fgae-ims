@@ -1,12 +1,13 @@
+
 import type { Request, Response, NextFunction } from "express";
 import type { ZodType } from "zod";
 
-// Reusable middleware for validating request bodies
+// Reusable middleware for validating request bodies.
 export const validate = (schema: ZodType) => {
   return (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): void => {
     const result = schema.safeParse(req.body);
 
@@ -19,7 +20,6 @@ export const validate = (schema: ZodType) => {
           message: issue.message,
         })),
       });
-
       return;
     }
 

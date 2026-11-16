@@ -110,4 +110,19 @@ describe("Role permissions", () => {
     expect(roleHasPermission("VOLUNTEER", PERMISSIONS.VOLUNTEER_READ)).toBe(false);
     expect(roleHasPermission("VOLUNTEER", PERMISSIONS.VOLUNTEER_UPDATE)).toBe(false);
   });
+
+  it("should allow designated managers to create staff accounts", () => {
+  expect(roleHasPermission("SUPER_ADMIN", PERMISSIONS.USER_CREATE)).toBe(true);
+  expect(roleHasPermission("AREA_MANAGER", PERMISSIONS.USER_CREATE)).toBe(true);
+  expect(roleHasPermission("BRANCH_MANAGER", PERMISSIONS.USER_CREATE)).toBe(true);
+  expect(roleHasPermission("VOLUNTEER_MANAGER", PERMISSIONS.USER_CREATE)).toBe(true);
+});
+
+it("should not allow non-managers to create staff accounts", () => {
+  expect(roleHasPermission("PROJECT_MANAGER", PERMISSIONS.USER_CREATE)).toBe(false);
+  expect(roleHasPermission("FIELD_SUPERVISOR", PERMISSIONS.USER_CREATE)).toBe(false);
+  expect(roleHasPermission("HR_OFFICER", PERMISSIONS.USER_CREATE)).toBe(false);
+  expect(roleHasPermission("FINANCE_OFFICER", PERMISSIONS.USER_CREATE)).toBe(false);
+  expect(roleHasPermission("VOLUNTEER", PERMISSIONS.USER_CREATE)).toBe(false);
+});
 });
