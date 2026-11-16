@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,12 +9,84 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ORGANIZATION
+// ======================================================
+// ENUMS
+// ======================================================
 
 enum OrganizationalStatus {
   ACTIVE
   INACTIVE
 }
+
+enum BuiltInRole {
+  SUPER_ADMIN
+  AREA_MANAGER
+  PROJECT_MANAGER
+  BRANCH_MANAGER
+  VOLUNTEER_MANAGER
+  FIELD_SUPERVISOR
+  HR_OFFICER
+  FINANCE_OFFICER
+  VOLUNTEER
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum ActivationPurpose {
+  ACCOUNT_ACTIVATION
+  PASSWORD_RESET
+  EMAIL_VERIFICATION
+}
+
+enum SubmissionChannel {
+  PUBLIC
+  STAFF_ASSISTED
+}
+
+enum ApplicationStatus {
+  AWAITING_PAYMENT
+  REGISTERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  EXPIRED
+}
+
+enum ProficiencyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum NotificationType {
+  PAYMENT
+  REGISTRATION
+  ACCOUNT_INVITATION
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+// ======================================================
+// ORGANIZATION
+// ======================================================
 
 model Organization {
   id          String               @id @default(uuid()) @db.Uuid
@@ -46,10 +119,11 @@ model Area {
   phone          String?              @db.VarChar(30)
   status         OrganizationalStatus @default(ACTIVE)
 
-  organization Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade )
+
   branches     Branch[]
   assignments  OrganizationalAssignment[]
-  projects     Project[] // ADDED (Projects section)
+  projects     Project[] // ADDED
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
@@ -71,8 +145,14 @@ model Branch {
   phone       String?              @db.VarChar(30)
   status      OrganizationalStatus @default(ACTIVE)
 
-  area        Area                       @relation(fields: [areaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  assignments OrganizationalAssignment[]
+  area Area @relation(fields: [areaId], references: [id], onDelete: Restrict, onUpdate: Cascade )
+
+  assignments OrganizationalAssignment[] @relation("BranchAssignment") // FIXED: was BranchAssignment[] (no such model)
+
+  // ADDED
+  healthFacilities     HealthFacility[]
+  volunteerAssignments VolunteerAssignment[]
+  applications VolunteerApplication[] @relation("ApplicationPreferredBranch")
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
@@ -83,19 +163,9 @@ model Branch {
   @@map("branches")
 }
 
-// FIXED SYSTEM ROLES
-
-enum BuiltInRole {
-  SUPER_ADMIN
-  AREA_MANAGER
-  PROJECT_MANAGER
-  BRANCH_MANAGER
-  VOLUNTEER_MANAGER
-  FIELD_SUPERVISOR
-  HR_OFFICER
-  FINANCE_OFFICER
-  VOLUNTEER
-}
+// ======================================================
+// ROLES AND PERMISSIONS
+// ======================================================
 
 model Role {
   id          String      @id @default(uuid()) @db.Uuid
@@ -132,8 +202,9 @@ model RolePermission {
   roleId       String @db.Uuid
   permissionId String @db.Uuid
 
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade )
+
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict )
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 
@@ -142,162 +213,9 @@ model RolePermission {
   @@map("role_permissions")
 }
 
+// ======================================================
 // USERS AND CREDENTIALS
-
-enum UserStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-}
-
-datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
-}
-
-// ORGANIZATION
-
-enum OrganizationalStatus {
-  ACTIVE
-  INACTIVE
-}
-
-model Organization {
-  id          String               @id @default(uuid()) @db.Uuid
-  code        String               @unique @db.VarChar(50)
-  name        String               @db.VarChar(150)
-  description String?              @db.Text
-  email       String?              @db.VarChar(255)
-  phone       String?              @db.VarChar(30)
-  website     String?              @db.VarChar(255)
-  address     String?              @db.Text
-  status      OrganizationalStatus @default(ACTIVE)
-
-  areas       Area[]
-  assignments OrganizationalAssignment[]
-
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-
-  @@map("organizations")
-}
-
-model Area {
-  id             String               @id @default(uuid()) @db.Uuid
-  organizationId String               @db.Uuid
-  code           String               @db.VarChar(50)
-  name           String               @db.VarChar(150)
-  description    String?              @db.Text
-  officeAddress  String?              @db.Text
-  email          String?              @db.VarChar(255)
-  phone          String?              @db.VarChar(30)
-  status         OrganizationalStatus @default(ACTIVE)
-
-  organization Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  branches     Branch[]
-  assignments  OrganizationalAssignment[]
-
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-
-  @@unique([organizationId, code])
-  @@unique([organizationId, name])
-  @@index([organizationId, status])
-  @@map("areas")
-}
-
-model Branch {
-  id          String               @id @default(uuid()) @db.Uuid
-  areaId      String               @db.Uuid
-  code        String               @db.VarChar(50)
-  name        String               @db.VarChar(150)
-  description String?              @db.Text
-  address     String?              @db.Text
-  email       String?              @db.VarChar(255)
-  phone       String?              @db.VarChar(30)
-  status      OrganizationalStatus @default(ACTIVE)
-
-  area        Area                       @relation(fields: [areaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  assignments OrganizationalAssignment[]
-
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-
-  @@unique([areaId, code])
-  @@unique([areaId, name])
-  @@index([areaId, status])
-  @@map("branches")
-}
-
-// FIXED SYSTEM ROLES
-
-enum BuiltInRole {
-  SUPER_ADMIN
-  AREA_MANAGER
-  PROJECT_MANAGER
-  BRANCH_MANAGER
-  VOLUNTEER_MANAGER
-  FIELD_SUPERVISOR
-  HR_OFFICER
-  FINANCE_OFFICER
-  VOLUNTEER
-}
-
-model Role {
-  id          String      @id @default(uuid()) @db.Uuid
-  code        BuiltInRole @unique
-  name        String      @db.VarChar(100)
-  description String?     @db.Text
-
-  permissions RolePermission[]
-  userRoles   UserRole[]
-
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-
-  @@map("roles")
-}
-
-model Permission {
-  id          String  @id @default(uuid()) @db.Uuid
-  key         String  @unique @db.VarChar(120)
-  module      String  @db.VarChar(100)
-  label       String  @db.VarChar(150)
-  description String? @db.Text
-
-  roles RolePermission[]
-
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-
-  @@index([module])
-  @@map("permissions")
-}
-
-model RolePermission {
-  id           String @id @default(uuid()) @db.Uuid
-  roleId       String @db.Uuid
-  permissionId String @db.Uuid
-
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
-
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-
-  @@unique([roleId, permissionId])
-  @@index([permissionId])
-  @@map("role_permissions")
-}
-
-// USERS AND CREDENTIALS
-
-enum UserStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-}
+// ======================================================
 
 model User {
   id         String     @id @default(uuid()) @db.Uuid
@@ -311,20 +229,37 @@ model User {
   emailVerifiedAt DateTime? @db.Timestamptz(6)
   lastLoginAt     DateTime? @db.Timestamptz(6)
 
-  credential                    UserCredential?
-  sessions                      UserSession[]
-  activationTokens              AccountActivationToken[]
-  roleAssignments               UserRole[]
-  assignments                   OrganizationalAssignment[]
+  credential       UserCredential?
+  sessions         UserSession[]
+  activationTokens AccountActivationToken[]
+
+  roleAssignments UserRole[]
+  assignments     OrganizationalAssignment[]
+
   organizationalAssignmentsMade OrganizationalAssignment[] @relation("OrganizationalAssignmentAssignedBy")
 
   rolesAssigned UserRole[] @relation("UserRoleAssignedBy")
-  auditLogs     AuditLog[] @relation("AuditActor")
-  targetedLogs  AuditLog[] @relation("AuditTarget")
 
-  // ADDED (Projects section)
-  projectsCreated Project[]                 @relation("ProjectCreatedBy")
-  budgetsApproved ProjectBudgetAllocation[] @relation("BudgetApprovedBy")
+  submittedApplications VolunteerApplication[] @relation("ApplicationSubmitter")
+
+  updatedSettings SystemSetting[] @relation("SettingUpdater")
+
+  // ADDED: link a login to the person it belongs to (needed for volunteer self-service)
+  personId String? @unique @db.Uuid
+  person   Person? @relation(fields: [personId], references: [id], onDelete: SetNull)
+
+  // ADDED: projects, field operations, allowances
+  projectsCreated       Project[]               @relation("ProjectCreatedBy")
+  budgetsApproved       ProjectBudgetAllocation[] @relation("BudgetApprovedBy")
+  assignmentsSupervised VolunteerAssignment[]   @relation("AssignmentSupervisor")
+  attendanceVerified    VolunteerAttendance[]   @relation("AttendanceVerifiedBy")
+  allowancesRequested   AllowanceRequest[]      @relation("AllowanceRequestedBy")
+  allowancesVerified    AllowanceRequest[]      @relation("AllowanceVerifiedBy")
+  allowancesApproved    AllowanceRequest[]      @relation("AllowanceApprovedBy")
+  disbursementsExecuted AllowanceDisbursement[] @relation("DisbursementExecutedBy")
+
+  auditLogs    AuditLog[] @relation("AuditActor")
+  targetedLogs AuditLog[] @relation("AuditTarget")
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
@@ -340,7 +275,7 @@ model UserCredential {
 
   passwordChangedAt DateTime @default(now()) @db.Timestamptz(6)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade )
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
@@ -348,7 +283,9 @@ model UserCredential {
   @@map("user_credentials")
 }
 
+// ======================================================
 // ROLE ASSIGNMENT HISTORY
+// ======================================================
 
 model UserRole {
   id           String  @id @default(uuid()) @db.Uuid
@@ -360,9 +297,11 @@ model UserRole {
   revokedAt  DateTime? @db.Timestamptz(6)
   reason     String?   @db.Text
 
-  user       User  @relation(fields: [userId], references: [id], onDelete: Restrict)
-  role       Role  @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  assignedBy User? @relation("UserRoleAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict )
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict )
+
+  assignedBy User? @relation("UserRoleAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull )
 
   @@index([userId, assignedAt])
   @@index([roleId])
@@ -370,7 +309,9 @@ model UserRole {
   @@map("user_roles")
 }
 
+// ======================================================
 // ORGANIZATIONAL ACCESS ASSIGNMENTS
+// ======================================================
 
 model OrganizationalAssignment {
   id             String  @id @default(uuid()) @db.Uuid
@@ -384,11 +325,15 @@ model OrganizationalAssignment {
   revokedAt  DateTime? @db.Timestamptz(6)
   reason     String?   @db.Text
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  area         Area?        @relation(fields: [areaId], references: [id], onDelete: Restrict)
-  branch       Branch?      @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  assignedBy   User?        @relation("OrganizationalAssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict )
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict )
+
+  area Area? @relation(fields: [areaId], references: [id], onDelete: Restrict )
+
+  branchIdRelation Branch? @relation("BranchAssignment", fields: [branchId], references: [id], onDelete: Restrict )
+
+  assignedBy User? @relation("OrganizationalAssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull )
 
   @@index([userId, revokedAt])
   @@index([organizationId])
@@ -397,7 +342,9 @@ model OrganizationalAssignment {
   @@map("organizational_assignments")
 }
 
+// ======================================================
 // AUTHENTICATION SESSIONS
+// ======================================================
 
 model UserSession {
   id               String @id @default(uuid()) @db.Uuid
@@ -411,7 +358,7 @@ model UserSession {
   ipAddress String? @db.VarChar(100)
   userAgent String? @db.Text
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade )
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 
@@ -420,13 +367,9 @@ model UserSession {
   @@map("user_sessions")
 }
 
-// ACCOUNT ACTIVATION
-
-enum ActivationPurpose {
-  ACCOUNT_ACTIVATION
-  PASSWORD_RESET
-  EMAIL_VERIFICATION
-}
+// ======================================================
+// ACCOUNT ACTIVATION AND PASSWORD RESET
+// ======================================================
 
 model AccountActivationToken {
   id        String            @id @default(uuid()) @db.Uuid
@@ -437,7 +380,7 @@ model AccountActivationToken {
   expiresAt DateTime  @db.Timestamptz(6)
   usedAt    DateTime? @db.Timestamptz(6)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade )
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 
@@ -446,7 +389,324 @@ model AccountActivationToken {
   @@map("account_activation_tokens")
 }
 
+// ======================================================
+// PERSON
+// ======================================================
+
+model Person {
+  id              String   @id @default(uuid()) @db.Uuid
+  firstName       String   @db.VarChar(100)
+  lastName        String   @db.VarChar(100)
+  grandFatherName String?  @db.VarChar(100)
+  gender          Gender
+  email           String   @unique @db.VarChar(254)
+  phone           String   @unique @db.VarChar(30)
+  dateOfBirth     DateTime @db.Date
+
+  application VolunteerApplication?
+  volunteer   Volunteer?
+  user        User? // ADDED
+
+  notifications Notification[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("persons")
+}
+
+// ======================================================
+// DEPARTMENTS
+// ======================================================
+
+model Department {
+  id          String  @id @default(uuid()) @db.Uuid
+  code        String  @unique @db.VarChar(30)
+  name        String  @unique @db.VarChar(100)
+  description String? @db.Text
+  isActive    Boolean @default(true)
+
+  applications VolunteerApplication[]
+  volunteers   Volunteer[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([isActive])
+  @@map("departments")
+}
+
+// ======================================================
+// VOLUNTEER APPLICATIONS
+// ======================================================
+
+model VolunteerApplication {
+  id       String @id @default(uuid()) @db.Uuid
+  personId String @unique @db.Uuid
+
+  availability Json?
+
+  submissionChannel SubmissionChannel
+  submittedByUserId String? @db.Uuid
+
+  status      ApplicationStatus @default(AWAITING_PAYMENT)
+  submittedAt DateTime          @default(now()) @db.Timestamptz(6)
+
+  departmentId     String @db.Uuid
+  preferredBranchId String @db.Uuid
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Restrict )
+
+  submittedBy User? @relation("ApplicationSubmitter", fields: [submittedByUserId], references: [id], onDelete: SetNull )
+
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Restrict )
+
+  preferredBranch Branch @relation("ApplicationPreferredBranch", fields: [preferredBranchId], references: [id], onDelete: Restrict )
+
+  payments  Payment[]
+  documents ApplicationDocument[] // ADDED
+
+  applicationSkills    ApplicationSkill[]
+  applicationInterests ApplicationInterest[]
+
+  volunteer Volunteer?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([status, submittedAt])
+  @@index([submittedByUserId])
+  @@index([departmentId])
+  @@index([preferredBranchId])
+  @@map("volunteer_applications")
+}
+
+// ======================================================
+// PAYMENT
+// ======================================================
+
+model Payment {
+  id            String @id @default(uuid()) @db.Uuid
+  applicationId String @db.Uuid
+
+  amount   Decimal       @db.Decimal(12, 2)
+  currency String        @default("ETB") @db.VarChar(3)
+  status   PaymentStatus @default(PENDING)
+
+  transactionReference String? @unique
+  paymentReference     String  @unique @db.VarChar(100)
+
+  applicantPhone String? @db.VarChar(30)
+  failureReason  String? @db.Text
+
+  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
+  expiresAt  DateTime? @db.Timestamptz(6)
+  verifiedAt DateTime? @db.Timestamptz(6)
+
+  application VolunteerApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict )
+
+  @@index([applicationId, status])
+  @@index([createdAt])
+  @@map("payments")
+}
+
+// ======================================================
+// VOLUNTEER PROFILES
+// ======================================================
+
+model Volunteer {
+  id            String @id @default(uuid()) @db.Uuid
+  personId      String @unique @db.Uuid
+  applicationId String @unique @db.Uuid
+  departmentId  String @db.Uuid
+
+  volunteerNumber String @unique @db.VarChar(50)
+
+  registeredAt DateTime @default(now()) @db.Timestamptz(6)
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Restrict )
+
+  application VolunteerApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict )
+
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Restrict )
+
+  skills    VolunteerSkill[]
+  interests VolunteerInterest[]
+
+  // ADDED
+  assignments       VolunteerAssignment[]
+  allowanceRequests AllowanceRequest[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([departmentId])
+  @@map("volunteers")
+}
+
+// ======================================================
+// VOLUNTEER NUMBER COUNTER
+// ======================================================
+
+model VolunteerNumberCounter {
+  year       Int      @id
+  lastNumber Int      @default(0)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("volunteer_number_counters")
+}
+
+// ======================================================
+// NOTIFICATIONS
+// ======================================================
+
+model Notification {
+  id       String @id @default(uuid()) @db.Uuid
+  personId String @db.Uuid
+
+  type    NotificationType
+  message String             @db.Text
+  status  NotificationStatus @default(PENDING)
+
+  sentAt DateTime? @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade )
+
+  @@index([personId, status])
+  @@map("notifications")
+}
+
+// ======================================================
+// SKILLS
+// ======================================================
+
+model Skill {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @unique @db.VarChar(100)
+  description String? @db.Text
+  isActive    Boolean @default(true)
+
+  applications ApplicationSkill[]
+  volunteers   VolunteerSkill[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("skills")
+}
+
+// Skills selected during application
+
+model ApplicationSkill {
+  id            String @id @default(uuid()) @db.Uuid
+  applicationId String @db.Uuid
+  skillId       String @db.Uuid
+
+  // Optional during application.
+  proficiencyLevel ProficiencyLevel?
+
+  application VolunteerApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade )
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Restrict )
+
+  @@unique([applicationId, skillId])
+  @@index([skillId])
+  @@map("application_skills")
+}
+
+// Skills associated with registered volunteers
+
+model VolunteerSkill {
+  id          String @id @default(uuid()) @db.Uuid
+  volunteerId String @db.Uuid
+  skillId     String @db.Uuid
+
+  // REQUIRED: every volunteer skill must have a proficiency level.
+  proficiencyLevel ProficiencyLevel
+
+  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade )
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Restrict )
+
+  @@unique([volunteerId, skillId])
+  @@map("volunteer_skills")
+}
+
+// ======================================================
+// INTERESTS
+// ======================================================
+
+model Interest {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @unique @db.VarChar(100)
+  description String? @db.Text
+  isActive    Boolean @default(true)
+
+  applications ApplicationInterest[]
+  volunteers   VolunteerInterest[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("interests")
+}
+
+// Interests selected during application
+
+model ApplicationInterest {
+  id            String @id @default(uuid()) @db.Uuid
+  applicationId String @db.Uuid
+  interestId    String @db.Uuid
+
+  application VolunteerApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade )
+
+  interest Interest @relation(fields: [interestId], references: [id], onDelete: Restrict )
+
+  @@unique([applicationId, interestId])
+  @@index([interestId])
+  @@map("application_interests")
+}
+
+// Interests associated with registered volunteers
+
+model VolunteerInterest {
+  id          String @id @default(uuid()) @db.Uuid
+  volunteerId String @db.Uuid
+  interestId  String @db.Uuid
+
+  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade )
+
+  interest Interest @relation(fields: [interestId], references: [id], onDelete: Restrict )
+
+  @@unique([volunteerId, interestId])
+  @@map("volunteer_interests")
+}
+
+// ======================================================
+// SYSTEM SETTINGS
+// ======================================================
+
+model SystemSetting {
+  id String @id @default(uuid()) @db.Uuid
+
+  settingKey   String @unique @db.VarChar(150)
+  settingValue String @db.Text
+
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  updatedByUserId String? @db.Uuid
+
+  updatedBy User? @relation("SettingUpdater", fields: [updatedByUserId], references: [id], onDelete: SetNull )
+
+  @@index([updatedByUserId])
+  @@map("system_settings")
+}
+
+// ======================================================
 // AUDIT LOGGING
+// ======================================================
 
 model AuditLog {
   id           String  @id @default(uuid()) @db.Uuid
@@ -461,8 +721,9 @@ model AuditLog {
   ipAddress String? @db.VarChar(100)
   userAgent String? @db.Text
 
-  actor      User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
-  targetUser User? @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull )
+
+  targetUser User? @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull )
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 
@@ -473,7 +734,9 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+// ======================================================
 // PROJECTS AND BUDGETS
+// ======================================================
 
 enum ProgramStatus {
   ACTIVE
@@ -523,7 +786,9 @@ model Project {
   area      Area    @relation(fields: [areaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   createdBy User?   @relation("ProjectCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
-  budgetAllocations ProjectBudgetAllocation[]
+  budgetAllocations    ProjectBudgetAllocation[]
+  volunteerAssignments VolunteerAssignment[]
+  allowanceRequests    AllowanceRequest[]
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
@@ -552,6 +817,8 @@ model ProjectBudgetAllocation {
   project    Project @relation(fields: [projectId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   approvedBy User?   @relation("BudgetApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
+  allowanceRequests AllowanceRequest[]
+
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
@@ -561,171 +828,227 @@ model ProjectBudgetAllocation {
   @@map("project_budget_allocations")
 }
 
-  id         String     @id @default(uuid()) @db.Uuid
-  email      String     @unique @db.VarChar(255)
-  phone      String?    @unique @db.VarChar(30)
-  firstName  String     @db.VarChar(100)
-  middleName String?    @db.VarChar(100)
-  lastName   String     @db.VarChar(100)
-  status     UserStatus @default(PENDING)
+// ======================================================
+// FIELD OPERATIONS: FACILITIES, DOCUMENTS, ASSIGNMENTS, ATTENDANCE
+// ======================================================
 
-  emailVerifiedAt DateTime? @db.Timestamptz(6)
-  lastLoginAt     DateTime? @db.Timestamptz(6)
+enum DocumentType {
+  ID_CARD
+  OTHER
+}
 
-  credential                    UserCredential?
-  sessions                      UserSession[]
-  activationTokens              AccountActivationToken[]
-  roleAssignments               UserRole[]
-  assignments                   OrganizationalAssignment[]
-  organizationalAssignmentsMade OrganizationalAssignment[] @relation("OrganizationalAssignmentAssignedBy")
+enum AssignmentStatus {
+  ACTIVE
+  COMPLETED
+  TERMINATED
+}
 
-  rolesAssigned UserRole[] @relation("UserRoleAssignedBy")
-  auditLogs     AuditLog[] @relation("AuditActor")
-  targetedLogs  AuditLog[] @relation("AuditTarget")
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+// A clinic or project site that belongs to a branch.
+model HealthFacility {
+  id       String @id @default(uuid()) @db.Uuid
+  branchId String @db.Uuid
+
+  code    String               @db.VarChar(50)
+  name    String               @db.VarChar(150)
+  address String?              @db.Text
+  status  OrganizationalStatus @default(ACTIVE)
+
+  branch      Branch                @relation(fields: [branchId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assignments VolunteerAssignment[]
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
-  @@index([status])
-  @@map("users")
+  @@unique([branchId, code])
+  @@index([branchId, status])
+  @@map("health_facilities")
 }
 
-model UserCredential {
-  id           String @id @default(uuid()) @db.Uuid
-  userId       String @unique @db.Uuid
-  passwordHash String @db.VarChar(255)
+// Uploaded files for an application (ID card, etc.). The file itself lives in storage.
+model ApplicationDocument {
+  id            String @id @default(uuid()) @db.Uuid
+  applicationId String @db.Uuid
 
-  passwordChangedAt DateTime @default(now()) @db.Timestamptz(6)
+  type          DocumentType
+  fileStorageId String       @db.VarChar(255)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application VolunteerApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([applicationId])
+  @@map("application_documents")
+}
+
+// One deployment of a volunteer to a project at a branch (or facility).
+model VolunteerAssignment {
+  id               String  @id @default(uuid()) @db.Uuid
+  volunteerId      String  @db.Uuid
+  projectId        String  @db.Uuid
+  branchId         String  @db.Uuid
+  healthFacilityId String? @db.Uuid
+  supervisorId     String  @db.Uuid
+
+  startDate DateTime         @db.Date
+  endDate   DateTime?        @db.Date
+  status    AssignmentStatus @default(ACTIVE)
+
+  volunteer      Volunteer       @relation(fields: [volunteerId], references: [id], onDelete: Restrict)
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  branch         Branch          @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  healthFacility HealthFacility? @relation(fields: [healthFacilityId], references: [id], onDelete: Restrict)
+  supervisor     User            @relation("AssignmentSupervisor", fields: [supervisorId], references: [id], onDelete: Restrict)
+
+  attendance VolunteerAttendance[]
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
-  @@map("user_credentials")
-}
-
-// ROLE ASSIGNMENT HISTORY
-
-model UserRole {
-  id           String  @id @default(uuid()) @db.Uuid
-  userId       String  @db.Uuid
-  roleId       String  @db.Uuid
-  assignedById String? @db.Uuid
-
-  assignedAt DateTime  @default(now()) @db.Timestamptz(6)
-  revokedAt  DateTime? @db.Timestamptz(6)
-  reason     String?   @db.Text
-
-  user       User  @relation(fields: [userId], references: [id], onDelete: Restrict)
-  role       Role  @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  assignedBy User? @relation("UserRoleAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
-
-  @@index([userId, assignedAt])
-  @@index([roleId])
-  @@index([assignedById])
-  @@map("user_roles")
-}
-
-// ORGANIZATIONAL ACCESS ASSIGNMENTS
-
-model OrganizationalAssignment {
-  id             String  @id @default(uuid()) @db.Uuid
-  userId         String  @db.Uuid
-  organizationId String  @db.Uuid
-  areaId         String? @db.Uuid
-  branchId       String? @db.Uuid
-  assignedById   String? @db.Uuid
-
-  assignedAt DateTime  @default(now()) @db.Timestamptz(6)
-  revokedAt  DateTime? @db.Timestamptz(6)
-  reason     String?   @db.Text
-
-  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  area         Area?        @relation(fields: [areaId], references: [id], onDelete: Restrict)
-  branch       Branch?      @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  assignedBy   User?        @relation("OrganizationalAssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
-
-  @@index([userId, revokedAt])
-  @@index([organizationId])
-  @@index([areaId])
+  @@index([volunteerId, status])
+  @@index([projectId, status])
   @@index([branchId])
-  @@map("organizational_assignments")
+  @@index([healthFacilityId])
+  @@index([supervisorId])
+  @@map("volunteer_assignments")
 }
 
-// AUTHENTICATION SESSIONS
+// High-volume table. The real database table must be PARTITIONED by
+// activityDate (monthly). Prisma cannot declare partitions, so the
+// migration SQL is edited by hand later. The primary key includes
+// activityDate because PostgreSQL requires the partition key in it.
+model VolunteerAttendance {
+  id           String   @default(uuid()) @db.Uuid
+  activityDate DateTime @db.Date
 
-model UserSession {
-  id               String @id @default(uuid()) @db.Uuid
-  userId           String @db.Uuid
-  refreshTokenHash String @unique @db.VarChar(255)
+  assignmentId String  @db.Uuid
+  verifiedById String? @db.Uuid
 
-  expiresAt  DateTime  @db.Timestamptz(6)
-  revokedAt  DateTime? @db.Timestamptz(6)
-  lastUsedAt DateTime? @db.Timestamptz(6)
+  checkIn   DateTime? @db.Time(6)
+  checkOut  DateTime? @db.Time(6)
+  latitude  Decimal?  @db.Decimal(10, 7)
+  longitude Decimal?  @db.Decimal(10, 7)
 
-  ipAddress String? @db.VarChar(100)
-  userAgent String? @db.Text
+  status             AttendanceStatus   @default(PRESENT)
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt         DateTime?          @db.Timestamptz(6)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignment VolunteerAssignment @relation(fields: [assignmentId], references: [id], onDelete: Restrict)
+  verifiedBy User?               @relation("AttendanceVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 
-  @@index([userId, revokedAt])
-  @@index([expiresAt])
-  @@map("user_sessions")
+  @@id([id, activityDate])
+  @@unique([assignmentId, activityDate])
+  @@index([verifiedById])
+  @@index([verificationStatus, activityDate])
+  @@map("volunteer_attendance")
 }
 
-// ACCOUNT ACTIVATION
+// ======================================================
+// ALLOWANCES AND DISBURSEMENTS (money out)
+// ======================================================
 
-enum ActivationPurpose {
-  ACCOUNT_ACTIVATION
-  PASSWORD_RESET
-  EMAIL_VERIFICATION
+enum AllowanceStatus {
+  DRAFT
+  SUBMITTED
+  VERIFIED
+  APPROVED
+  PROCESSING
+  PAID
+  FAILED
 }
 
-model AccountActivationToken {
-  id        String            @id @default(uuid()) @db.Uuid
-  userId    String            @db.Uuid
-  tokenHash String            @unique @db.VarChar(255)
-  purpose   ActivationPurpose
+enum DisbursementMethod {
+  TELEBIRR_BULK
+  BANK_TRANSFER
+}
 
-  expiresAt DateTime  @db.Timestamptz(6)
-  usedAt    DateTime? @db.Timestamptz(6)
+enum DisbursementStatus {
+  PROCESSING
+  PAID
+  FAILED
+}
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+// A request to pay a volunteer a per-diem. Money has not moved yet.
+model AllowanceRequest {
+  id                 String  @id @default(uuid()) @db.Uuid
+  volunteerId        String  @db.Uuid
+  projectId          String  @db.Uuid
+  budgetAllocationId String  @db.Uuid
+  requestedById      String  @db.Uuid
+  verifiedById       String? @db.Uuid
+  approvedById       String? @db.Uuid
+
+  amount   Decimal         @db.Decimal(12, 2) // CHECK (amount > 0) is added in the migration SQL
+  currency String          @default("ETB") @db.VarChar(3)
+  reason   String?         @db.VarChar(255)
+  status   AllowanceStatus @default(DRAFT)
+
+  verifiedAt DateTime? @db.Timestamptz(6)
+  approvedAt DateTime? @db.Timestamptz(6)
+
+  // Optimistic locking
+  version Int @default(0)
+
+  volunteer        Volunteer               @relation(fields: [volunteerId], references: [id], onDelete: Restrict)
+  project          Project                 @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  budgetAllocation ProjectBudgetAllocation @relation(fields: [budgetAllocationId], references: [id], onDelete: Restrict)
+  requestedBy      User                    @relation("AllowanceRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  verifiedBy       User?                   @relation("AllowanceVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  approvedBy       User?                   @relation("AllowanceApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  disbursements AllowanceDisbursement[]
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
-  @@index([userId, purpose])
-  @@index([expiresAt])
-  @@map("account_activation_tokens")
+  @@index([volunteerId, status])
+  @@index([projectId, status])
+  @@index([budgetAllocationId])
+  @@index([requestedById])
+  @@index([verifiedById])
+  @@index([approvedById])
+  @@map("allowance_requests")
 }
 
-// AUDIT LOGGING
+// The actual money sent out. Treated as a permanent ledger: the migration
+// adds a trigger that blocks DELETE and changes to every column except
+// status, failureReason, providerTxnId and completedAt.
+model AllowanceDisbursement {
+  id                 String  @id @default(uuid()) @db.Uuid
+  allowanceRequestId String  @db.Uuid
+  executedById       String? @db.Uuid
 
-model AuditLog {
-  id           String  @id @default(uuid()) @db.Uuid
-  actorId      String? @db.Uuid
-  targetUserId String? @db.Uuid
+  method         DisbursementMethod
+  amount         Decimal            @db.Decimal(12, 2)
+  recipientPhone String             @db.VarChar(30)
+  status         DisbursementStatus @default(PROCESSING)
 
-  action     String  @db.VarChar(120)
-  entityType String  @db.VarChar(100)
-  entityId   String? @db.VarChar(100)
+  providerTxnId  String? @unique @db.VarChar(100)
+  idempotencyKey String  @unique @db.VarChar(100) // money is sent exactly once
+  failureReason  String? @db.Text
 
-  metadata  Json?
-  ipAddress String? @db.VarChar(100)
-  userAgent String? @db.Text
+  executedAt  DateTime  @default(now()) @db.Timestamptz(6)
+  completedAt DateTime? @db.Timestamptz(6)
 
-  actor      User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
-  targetUser User? @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  allowanceRequest AllowanceRequest @relation(fields: [allowanceRequestId], references: [id], onDelete: Restrict)
+  executedBy       User?            @relation("DisbursementExecutedBy", fields: [executedById], references: [id], onDelete: SetNull)
 
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-
-  @@index([actorId, createdAt])
-  @@index([targetUserId, createdAt])
-  @@index([entityType, entityId])
-  @@index([action, createdAt])
-  @@map("audit_logs")
+  @@index([allowanceRequestId])
+  @@index([executedById])
+  @@index([status, executedAt])
+  @@map("allowance_disbursements")
 }
