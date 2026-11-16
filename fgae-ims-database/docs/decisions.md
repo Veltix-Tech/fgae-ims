@@ -21,6 +21,7 @@ Does AuditLog need before and after values and partitioning?
 - Model names: PascalCase singular (no @@map)
 - Keep Skill, Interest, Notification, SystemSetting
 
+
 ## Still open (ask the leader)
 - User.status default: INVITED or ACTIVE?
 - Keep User.name? Should passwordHash be required?
