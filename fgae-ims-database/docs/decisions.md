@@ -25,3 +25,12 @@ Does AuditLog need before and after values and partitioning?
 - User.status default: INVITED or ACTIVE?
 - Keep User.name? Should passwordHash be required?
 - Is the registration fee paid before or after approval?
+
+## Provisional finance models: to confirm
+- The Blueprint calls allowance_disbursements "immutable", but its status must change from PROCESSING to PAID or FAILED when the Telebirr webhook arrives. Option A: allow updates to status and completedAt only (a trigger blocks everything else). Option B: keep disbursements append-only and add a disbursement_events table. Which one?
+- I added `amount` to AllowanceDisbursement. The Blueprint omits it, but a payout ledger should record how much was sent.
+- Approval and disbursement: separate permissions or separate users? Can the person who approves also pay?
+- Budget check: how do we stop approved allowances exceeding a budget line? (Proposal: sum of APPROVED + PAID requests <= allocation amount, checked in a transaction using the version column.)
+- Payment: the registration fee can attach to an application. Should the fee come before or after approval?
+- Membership dues have no related table yet (members and membership applications are Phase 4).
+- Should AllowanceRequest require verified attendance records? (The guide says it is validated against them.)
