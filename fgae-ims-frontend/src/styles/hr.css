@@ -1,0 +1,9 @@
+.hr-scope-card { margin-bottom: 24px; }
+.hr-branches { display: flex; flex-wrap: wrap; gap: 12px; padding: 0; margin: 0; list-style: none; }
+.hr-branches li { display: flex; gap: 8px; align-items: center; background: var(--pale-sky); border-radius: 8px; padding: 10px 14px; overflow-wrap: anywhere; }
+.hr-branches svg { color: var(--action); flex-shrink: 0; }
+.hr-records li { grid-template-columns: minmax(0, 1fr) 180px 185px; }
+.hr-record-status { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.hr-record-status p { font-size: 12px; color: var(--muted); }
+.hr-record-status .hr-followup { color: #775007; }
+@media (max-width: 700px) { .hr-records li { grid-template-columns: 1fr; } .hr-record-status { margin-left: 52px; } .hr-record-status .workspace-badge { margin-left: 0; } }

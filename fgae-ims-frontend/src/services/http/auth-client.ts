@@ -107,6 +107,19 @@ export class AuthClient {
     if (generation !== this.generation) throw new OverviewError('SESSION_EXPIRED')
     return result
   }
+  async hrOverview(signal?: AbortSignal) {
+    const generation = this.generation
+    const send = () => this.request('/workspaces/hr/overview', 'GET', undefined, signal)
+    let response = await send()
+    if (response.status === 401) { await this.refresh(); response = await send() }
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new OverviewError('SESSION_EXPIRED')
+    if (response.status === 403) throw new OverviewError('FORBIDDEN')
+    const result = await this.parse(response)
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new OverviewError('SESSION_EXPIRED')
+    return result
+  }
   async correction(suffix: string, method: string, body?: unknown, signal?: AbortSignal, options: { key?: string; progress?: (percent: number) => void; blob?: boolean } = {}) {
     return this.featureRequest('corrections', suffix, method, body, signal, options)
   }

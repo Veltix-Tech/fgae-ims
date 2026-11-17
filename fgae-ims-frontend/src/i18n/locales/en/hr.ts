@@ -1,0 +1,17 @@
+export const hr = {
+  hrTitle: 'HR overview · FGAE IMS', hrSkip: 'Skip to HR overview', hrLink: 'Open HR overview', hrHeading: 'People & workplace', hrEyebrow: 'HR WORKSPACE',
+  hrIntro: 'Personnel and work locations within your assigned scope.', hrScope: 'Assigned organizational scope',
+  hrWelcome: 'Keep your people records in view', hrWelcomeNote: 'See employment status, check work locations and identify records that need follow-up.',
+  hrTotal: 'Personnel records', hrTotalNote: 'All employment statuses in your scope', hrActive: 'Active employment', hrActiveNote: 'People currently in active employment',
+  hrLeave: 'On leave', hrLeaveNote: 'People recorded as on leave', hrEnded: 'Employment ended', hrLocations: 'Covered branches', hrLocationsNote: 'Branches included in this overview',
+  hrAttention: 'Record follow-up', hrAttentionNote: 'A person may appear in both categories. These are record gaps, not approval requests.',
+  hrContact: 'Contact details to complete', hrContactNote: 'Personnel records missing required contact information', hrJob: 'Job details to complete', hrJobNote: 'Personnel records missing required job information',
+  hrClear: 'No record gaps reported', hrClearNote: 'The current records have no flagged contact or job details to complete.',
+  hrCoverage: 'Your organizational coverage', hrCoverageNote: 'Personnel summaries include only these authorized branches.', hrNoLocations: 'No branches are currently mapped to your HR scope. Contact your administrator to confirm your assignment.',
+  hrRecent: 'Recently updated personnel records', hrRecentNote: 'Up to six records, ordered by the latest personnel update.', hrJobMissing: 'Job title not recorded', hrEmployment: 'Employment status',
+  hrAccountActive: 'Account: active', hrAccountSuspended: 'Account: suspended', hrAccountNone: 'No linked account', hrFollowup: 'Record follow-up needed',
+  hrEmpty: 'No personnel records in this scope', hrEmptyNote: 'Personnel records will appear here when they are assigned to a covered branch.',
+  hrReadOnly: 'Employment status and account access are separate. This overview does not change either.',
+  hrSignIn: 'Sign in to view the HR workspace', hrDenied: 'HR access is required', hrDeniedNote: 'An active HR account with an assigned organizational scope, or a Super Admin account, is required.',
+  hrUnavailable: 'The HR overview is unavailable right now. Try again.', hrLoading: 'Loading your HR overview…',
+} as const

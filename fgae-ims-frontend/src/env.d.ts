@@ -30,3 +30,7 @@ declare module '@account-adapter' {
 declare module '@overview-adapter' {
   export const overviewService: import('./services/contracts/overview').OverviewService
 }
+
+declare module '@hr-overview-adapter' {
+  export const hrOverviewService: import('./services/contracts/hr-overview').HrOverviewService
+}
