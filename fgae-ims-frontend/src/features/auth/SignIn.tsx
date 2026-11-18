@@ -1,3 +1,4 @@
+import { canReadManager, managerKinds } from '../../services/contracts/manager-overview'
 import { canReadHr } from '../../services/contracts/hr-overview'
 import { canReadOverview } from '../../services/contracts/overview'
 import { canManageAccount } from '../../services/contracts/account'
@@ -134,6 +135,7 @@ export function SignIn({ service = authService, protectedEntry = false }: { serv
       {canReadOwnApplication(identity) && <a href="/my-application" className="primary action-link first-continue">{t('appLink')}<ArrowRightIcon size={20} aria-hidden="true" /></a>}
       {canReadOverview(identity) && <a className="primary action-link" href="/workspaces/super-admin">{t('homeLink')}</a>}
       {canReadHr(identity) && <a className="primary action-link" href="/workspaces/hr">{t('hrLink')}</a>}
+      {managerKinds.filter(kind => canReadManager(identity, kind)).map(kind => <a key={kind} className="primary action-link" href={`/workspaces/${kind}`}>{t(kind === 'area-manager' ? 'areaLink' : kind === 'branch-manager' ? 'branchLink' : 'vmLink')}</a>)}
       {canManageAccount(identity) && <a href="/account" className="secondary action-link first-continue">{t('acctLink')}</a>}
       <Button className="primary" disabled={busy === 'logout'} onClick={() => void signOut()}>{t(busy === 'logout' ? 'signingOut' : 'signOut')}<SignOutIcon size={20} aria-hidden="true" /></Button>
     </div> : <form onSubmit={event => void submit(event)} noValidate aria-busy={busy === 'login'}>

@@ -1,3 +1,4 @@
+import type { ManagerKind } from '../contracts/manager-overview'
 import { AccountError, accountCodes } from '../contracts/account'
 import { OverviewError } from '../contracts/overview'
 import { AuthError, type AuthErrorCode } from '../contracts/auth'
@@ -97,6 +98,19 @@ export class AuthClient {
   async adminOverview(signal?: AbortSignal) {
     const generation = this.generation
     const send = () => this.request('/workspaces/super-admin/overview', 'GET', undefined, signal)
+    let response = await send()
+    if (response.status === 401) { await this.refresh(); response = await send() }
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new OverviewError('SESSION_EXPIRED')
+    if (response.status === 403) throw new OverviewError('FORBIDDEN')
+    const result = await this.parse(response)
+    signal?.throwIfAborted()
+    if (generation !== this.generation) throw new OverviewError('SESSION_EXPIRED')
+    return result
+  }
+  async managerOverview(kind: ManagerKind, signal?: AbortSignal) {
+    const generation = this.generation
+    const send = () => this.request(`/workspaces/${kind}/overview`, 'GET', undefined, signal)
     let response = await send()
     if (response.status === 401) { await this.refresh(); response = await send() }
     signal?.throwIfAborted()

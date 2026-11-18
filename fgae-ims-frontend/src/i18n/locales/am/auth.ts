@@ -1,3 +1,4 @@
+import { managers } from './managers'
 import { hr } from './hr'
 import { overview } from './overview'
 import { account } from './account'
@@ -12,6 +13,7 @@ export const am: Record<TranslationKey, string> = {
   ...account,
   ...overview,
   ...hr,
+  ...managers,
   firstTitle: 'የይለፍ ቃል ማዘጋጀት · FGAE IMS', firstSkip: 'ወደ የይለፍ ቃል ማዘጋጃ ዝለል', firstEyebrow: 'የመጀመሪያ መግቢያ',
   firstHeading: 'የራስዎን የይለፍ ቃል ያዘጋጁ', firstIntro: 'ጊዜያዊ የይለፍ ቃልዎን እርስዎ ብቻ በሚያውቁት ይተኩ. ከዚያ በአዲሱ የይለፍ ቃል እንደገና ይግቡ.',
   firstCheckingHeading: 'መለያዎን በማረጋገጥ ላይ', firstCurrent: 'ጊዜያዊ የይለፍ ቃል', firstCurrentRequired: 'ለመግባት የተጠቀሙበትን ጊዜያዊ የይለፍ ቃል ያስገቡ.',

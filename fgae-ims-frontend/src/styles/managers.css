@@ -1,0 +1,15 @@
+.manager-section { margin-bottom: 24px; }
+.manager-locations { display: flex; flex-wrap: wrap; gap: 12px; padding: 0; margin: 0; list-style: none; }
+.manager-locations li { display: flex; align-items: center; gap: 10px; background: var(--pale-sky); border-radius: 8px; padding: 12px 16px; overflow-wrap: anywhere; }
+.manager-locations svg { flex-shrink: 0; color: var(--action); }
+.manager-locations small { display: block; color: var(--muted); }
+.manager-work { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.manager-work > li { border: 1px solid var(--divider); border-radius: 10px; padding: 20px; }
+.manager-work-heading { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.manager-work-heading p, .manager-applications li p, .manager-volunteers li p { color: var(--muted); font-size: 12px; margin-top: 6px; overflow-wrap: anywhere; }
+.manager-work-heading .workspace-badge { flex-shrink: 0; }
+.manager-work dl { margin: 18px 0 0; display: grid; gap: 12px; }
+.manager-work dt { color: var(--muted); font-size: 12px; }
+.manager-work dd { margin: 2px 0 0; }
+.manager-followup { margin-top: 12px; font-size: 12px; color: #775007; }
+@media (max-width: 700px) { .manager-work { grid-template-columns: 1fr; } .manager-work-heading { flex-wrap: wrap; } .manager-page .workspace-records .workspace-badge, .manager-page .workspace-records time { margin-left: 0; } }
