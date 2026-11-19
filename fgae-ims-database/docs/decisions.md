@@ -25,3 +25,8 @@ Does AuditLog need before and after values and partitioning?
 - User.status default: INVITED or ACTIVE?
 - Keep User.name? Should passwordHash be required?
 - Is the registration fee paid before or after approval?
+
+## Confirmed as built in migration 20261116180814
+- ApplicationStatus: AWAITING_PAYMENT, REGISTERED, CANCELLED (no review/approve/reject step, unlike the guide)
+- volunteer_applications.personId is unique (no reapplication)
+- Changing either later needs a new migration (enum change, or dropping a unique index)
