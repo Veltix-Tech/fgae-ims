@@ -12,8 +12,8 @@ async function details(page: Page) {
   await page.locator('#reg-email').fill(email)
   await page.locator('#reg-phone').fill('0912 345 678')
   await page.locator('#reg-birthDate').fill('2000-02-29')
-  await page.locator('#reg-gender').selectOption('FEMALE')
-  await page.locator('#reg-branchId').selectOption('fictional-branch-a')
+  await page.locator('#reg-gender').click(); await page.locator('#reg-gender-options').locator(`[data-option-value=${'FEMALE'}]`).click()
+  await page.locator('#reg-branchId').click(); await page.locator('#reg-branchId-options').locator(`[data-option-value=${'fictional-branch-a'}]`).click()
 }
 async function account(page: Page) {
   await page.locator('#reg-password').fill(password)

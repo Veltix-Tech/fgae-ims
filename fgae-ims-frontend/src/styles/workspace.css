@@ -40,3 +40,54 @@
 @media (max-width: 1050px) { .workspace-page .application-heading { flex-direction: column; gap: 0; } .workspace-controls { padding: 0 0 18px; } .workspace-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .workspace-columns { grid-template-columns: minmax(0, 1fr); } .workspace-records li { grid-template-columns: 1fr; gap: 10px; } .workspace-badge, .workspace-records time { margin-left: 52px; } .workspace-art { display: none; } .workspace-banner { padding: 22px; } .workspace-banner h2 { font-size: 23px; } .workspace-metric { padding: 16px; } .workspace-nav { gap: 18px; } .workspace-checked { text-align: left; } }
 @media (max-width: 380px) { .workspace-metrics { grid-template-columns: 1fr; } }
+
+/* Give operational pages room while preserving the narrower account forms. */
+.application-layout.workspace-shell { width: 94%; max-width: 1920px; }
+/* Signed-in workspace selection is a navigation page, separate from the login form. */
+.auth-layout:has(.workspace-launcher) { display: block; width: 90%; max-width: 1800px; max-height: none; margin: 0 auto; padding: 36px 0 48px; }
+.auth-layout:has(.workspace-launcher) > .welcome-panel { display: none; }
+.auth-layout:has(.workspace-launcher) > .form-panel { display: block; padding: 0; }
+.sign-in.workspace-launcher { width: 100%; }
+.workspace-destinations { display: grid; gap: 16px; margin: 28px 0; }
+.workspace-destinations:empty { display: none; }
+.workspace-launcher .workspace-destinations { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.workspace-launcher .workspace-destinations a { justify-content: space-between; min-height: 80px; padding: 20px 24px; text-align: left; color: var(--action); background: var(--surface); border: 1px solid var(--divider); border-radius: 12px; }
+.workspace-launcher .workspace-destinations a::after { content: ''; width: 8px; height: 8px; flex-shrink: 0; margin-left: 12px; border-top: 2px solid currentColor; border-right: 2px solid currentColor; transform: rotate(45deg); }
+.workspace-launcher .workspace-destinations a:hover { background: var(--pale-sky); border-color: var(--action); }
+.signed-in-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.signed-in-actions > * { flex: 1; margin: 0; }
+.workspace-launcher .signed-in-actions { max-width: 460px; }
+.workspace-launcher .account-help { max-width: 640px; }
+@media (max-width: 1050px) { .workspace-launcher .workspace-destinations { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .workspace-launcher .workspace-destinations { grid-template-columns: minmax(0, 1fr); } }
+
+.workspace-shell { display: grid; grid-template-columns: 300px minmax(0, 1fr); align-items: start; gap: 28px; }
+.workspace-shell > section { min-width: 0; }
+.workspace-shell:not(:has(.workspace-sidebar)) { display: block; }
+.workspace-sidebar { position: sticky; top: 24px; padding: 20px 16px; background: var(--surface); border: 1px solid var(--divider); border-radius: 14px; max-height: calc(100vh - 48px); overflow-y: auto; }
+.navigation-heading { margin: 0 10px 20px; }
+.ui-accordion + .ui-accordion { border-top: 1px solid var(--divider); margin-top: 8px; padding-top: 8px; }
+.accordion-trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 48px; padding: 12px; border: 0; border-radius: 8px; color: var(--ink); background: transparent; text-align: left; font-size: 14px; font-weight: 600; }
+.accordion-trigger:hover { background: var(--pale-sky); }
+.accordion-trigger > svg { flex-shrink: 0; transition: transform 180ms ease; }
+.accordion-trigger[aria-expanded='true'] > svg { transform: rotate(180deg); }
+.accordion-panel:not([hidden]), .accordion-options:not([hidden]) { animation: accordion-reveal 160ms ease-out; }
+.accordion-panel a { display: block; margin: 4px 0; padding: 10px 12px; border-radius: 8px; color: var(--muted); font-size: 13px; text-decoration: none; overflow-wrap: anywhere; }
+.accordion-panel a:hover, .accordion-panel a[aria-current='page'] { color: var(--action); background: var(--pale-sky); }
+.accordion-panel a[aria-current='page'] { font-weight: 650; box-shadow: inset 3px 0 var(--action); }
+.accordion-select { position: relative; min-width: 0; }
+.accordion-label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 10px; }
+.accordion-select > .accordion-trigger { min-height: 50px; border: 1px solid var(--control-border); background: var(--surface); font-weight: 400; }
+.accordion-options { position: absolute; top: 100%; left: 0; right: 0; margin-top: 6px; z-index: 5; padding: 6px; max-height: 300px; overflow-y: auto; background: var(--surface); border: 1px solid var(--divider); border-radius: 10px; box-shadow: 0 12px 28px #16354d1a; }
+.accordion-option { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 10px; border: 0; border-radius: 6px; color: var(--ink); background: transparent; text-align: left; font-size: 14px; }
+.accordion-option:hover, .accordion-option[aria-pressed='true'] { color: var(--action); background: var(--pale-sky); }
+@keyframes accordion-reveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@media (min-width: 1201px) { .workspace-sidebar nav > .ui-accordion > .accordion-trigger { display: none; } #nav-mobile-panel[hidden] { display: block; } .workspace-shell .workspace-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1600px) { .workspace-shell .workspace-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 1200px) { .workspace-shell { grid-template-columns: minmax(0, 1fr); gap: 24px; } .workspace-sidebar { position: static; max-height: none; padding: 8px; } .navigation-heading { display: none; } }
+@media (prefers-reduced-motion: reduce) { .accordion-trigger > svg { transition: none; } .accordion-panel:not([hidden]), .accordion-options:not([hidden]) { animation: none; } }
+.field > .accordion-select { margin: 0; }
+.animated-results { display: flow-root; }
+.directory-filters input[type='search'] { transition: border-color 160ms ease, box-shadow 160ms ease; }
+@media (prefers-reduced-motion: reduce) { .directory-filters input[type='search'] { transition: none; } }
+@media (max-width: 600px) { .application-layout.workspace-shell { width: 90%; } }

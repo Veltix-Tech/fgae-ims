@@ -9,6 +9,9 @@ async function login(page: Page, email: string, copy: typeof am = en) {
   if (await page.getByRole('button', { name: copy.signOut, exact: true }).isVisible()) await page.getByRole('button', { name: copy.signOut, exact: true }).click()
   await page.locator('#email').fill(email); await page.locator('#password').fill('Demo-only-2026!'); await page.getByRole('button', { name: copy.signIn, exact: true }).click(); await expect(page.getByRole('heading', { name: copy.signedIn })).toBeVisible()
 }
+async function chooseFilter(page: Page, id: string, label: string) {
+  await page.locator(`#${id}`).click(); await page.locator(`#${id}-options`).getByRole('button', { name: label, exact: true }).click()
+}
 async function axe(page: Page) {
   await page.evaluate(async () => { await document.fonts.ready; document.getAnimations().filter(animation => animation.effect?.getTiming().iterations !== Infinity).forEach(animation => animation.finish()) })
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([])
@@ -34,11 +37,11 @@ for (const kind of portfolioKinds) {
         await page.setViewportSize({ width: 390, height: 900 })
         await expect(page.locator('.directory-users > li')).toHaveCount(8); await expect(page.getByRole('button', { name: copy.portPrevious, exact: true })).toBeDisabled()
         await page.getByRole('button', { name: copy.portNext, exact: true }).click(); await expect(page.locator('#directory-heading')).toBeFocused(); await expect(page.locator('.directory-pages')).toContainText('2')
-        await page.getByLabel(copy.portSearch).fill('volunteer@example.test'); await expect(page.locator('.directory-users > li')).toHaveCount(2); await page.getByLabel(copy.portRole, { exact: true }).selectOption('MEMBER'); await expect(page.locator('.directory-users > li')).toHaveCount(1); await expect(page.locator('.directory-grants')).toContainText(copy.VOLUNTEER); await expect(page.locator('.directory-grants')).toContainText(copy.MEMBER)
-        await page.getByLabel(copy.portRole, { exact: true }).selectOption('HR'); await expect(page.getByText(copy.portNoResults)).toBeVisible(); await axe(page)
+        await page.getByLabel(copy.portSearch).fill('volunteer@example.test'); await expect(page.locator('.directory-users > li')).toHaveCount(2); await chooseFilter(page, 'directory-role', copy.MEMBER); await expect(page.locator('.directory-users > li')).toHaveCount(1); await expect(page.locator('.directory-grants')).toContainText(copy.VOLUNTEER); await expect(page.locator('.directory-grants')).toContainText(copy.MEMBER)
+        await chooseFilter(page, 'directory-role', copy.HR); await expect(page.getByText(copy.portNoResults)).toBeVisible(); await axe(page)
         await page.getByRole('button', { name: copy.portClear }).click(); await expect(page.locator('#directory-search')).toBeFocused()
-        await page.getByLabel(copy.portState, { exact: true }).selectOption('SUSPENDED'); await expect(page.locator('.directory-users > li')).toHaveCount(1); await expect(page.locator('.directory-users')).toContainText(copy.accessSuspended)
-        await page.getByRole('button', { name: copy.portClear }).click(); await page.getByLabel(copy.portSearch).fill('Demo branch A'); await page.getByLabel(copy.portRole, { exact: true }).selectOption('HR'); await expect(page.locator('.directory-users > li')).toHaveCount(2)
+        await chooseFilter(page, 'directory-state', copy.accessSuspended); await expect(page.locator('.directory-users > li')).toHaveCount(1); await expect(page.locator('.directory-users')).toContainText(copy.accessSuspended)
+        await page.getByRole('button', { name: copy.portClear }).click(); await page.getByLabel(copy.portSearch).fill('Demo branch A'); await chooseFilter(page, 'directory-role', copy.HR); await expect(page.locator('.directory-users > li')).toHaveCount(2)
         await page.getByRole('button', { name: copy.homeRefresh }).click(); await expect(page.getByLabel(copy.portSearch)).toHaveValue('Demo branch A'); await expect(page.locator('.directory-users > li')).toHaveCount(2)
       } else { await page.getByRole('button', { name: copy.homeRefresh }).click(); await expect(page.locator('#portfolio-heading')).toBeFocused() }
       await page.getByRole('link', { name: copy.acctHeading, exact: true }).click(); await expect(page.locator('#acct-name')).toBeVisible(); await page.goBack(); await expect(page.locator('.workspace-value')).toHaveCount(4)
@@ -85,6 +88,6 @@ for (const kind of portfolioKinds) {
     await login(page, 'super.admin@example.test'); await page.getByRole('link', { name: en[labels[kind].link] }).click(); await expect(page.locator('.workspace-value')).toHaveCount(4)
     if (kind === 'project-manager') await expect(page.locator('main')).toContainText('Outside project')
     if (kind === 'member') await expect(page.locator('.portfolio-membership')).toHaveCount(2)
-    if (kind === 'users') { await page.getByRole('link', { name: en.homeLink }).click(); await page.getByRole('link', { name: en.usersHeading, exact: true }).click(); await expect(page).toHaveURL(/\/users$/) }
+    if (kind === 'users') { await page.getByRole('link', { name: en.homeLink, exact: true }).click(); await page.getByRole('link', { name: en.usersHeading, exact: true }).click(); await expect(page).toHaveURL(/\/users$/) }
   })
 }

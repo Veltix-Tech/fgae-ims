@@ -28,7 +28,7 @@ for (const locale of ['en', 'am'] as const) {
     await axe(page); await page.screenshot({ path: `docs/screenshots/corrections-${locale}-${width}.png`, fullPage: true, animations: 'disabled' })
     await page.locator('#corr-phone').fill('bad'); await page.getByRole('button', { name: copy.corrReviewButton }).click()
     await expect(page.locator('#corr-phone')).toBeFocused(); await expect(page.locator('#corr-phone-error')).toContainText(copy.regPhoneInvalid)
-    await page.locator('#corr-phone').fill('0912345678'); await page.locator('#corr-branchId').selectOption('fictional-branch-b')
+    await page.locator('#corr-phone').fill('0912345678'); await page.locator('#corr-branchId').click(); await page.locator('#corr-branchId-options').locator(`[data-option-value=${'fictional-branch-b'}]`).click()
     await page.getByRole('button', { name: copy.corrReviewButton }).click(); await expect(page.getByRole('alert')).toContainText(copy.regDocumentMissing)
     await page.locator('#file-identity').setInputFiles(proof); await expect(page.getByRole('link', { name: copy.regPreview })).toBeVisible()
     await page.getByRole('button', { name: copy.regSaveDraft, exact: true }).click(); await expect(page.getByRole('status')).toContainText(copy.corrSaved)

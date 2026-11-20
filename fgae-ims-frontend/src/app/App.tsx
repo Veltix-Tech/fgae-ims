@@ -1,3 +1,4 @@
+import { WorkspaceNavigation } from '../components/WorkspaceNavigation'
 import { PortfolioWorkspace } from '../features/workspaces/PortfolioWorkspace'
 import type { PortfolioKind } from '../services/contracts/portfolio'
 import { ParticipantOverview } from '../features/workspaces/ParticipantOverview'
@@ -30,7 +31,8 @@ export function App({ protectedEntry = false, page = 'sign-in', resetToken = '' 
       <div className="brand"><img src="/brand/mark.svg" width="46" height="46" alt="" /><div><span className="wordmark">FGAE<span className="wordmark-divider">/</span><span className="ims">IMS</span></span><p>{t('organization')}</p></div></div>
       <LanguageSelector />
     </header>
-    <main className={portfolioPage || participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'application' || page === 'corrections' || page === 'account' ? 'application-layout' : 'auth-layout'}>
+    <main className={portfolioPage || participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'application' || page === 'corrections' || page === 'account' ? `application-layout${portfolioPage || participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'account' || page === 'application' || page === 'corrections' ? ' workspace-shell' : ''}` : 'auth-layout'}>
+      {(portfolioPage || participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'account' || page === 'application' || page === 'corrections') && <WorkspaceNavigation />}
       {portfolioPage ? <PortfolioWorkspace key={page} kind={page} /> : participantPage ? <ParticipantOverview key={page} kind={page} /> : managerPage ? <ManagerOverview key={page} kind={page} /> : page === 'hr' ? <HrOverview /> : page === 'overview' ? <SuperAdmin /> : page === 'account' ? <Account /> : page === 'corrections' ? <CorrectApplication /> : page === 'application' ? <MyApplication /> : <>
       <section className="welcome-panel motion-enter" aria-labelledby="welcome-heading">
         <p className="eyebrow">{t('eyebrow')}</p>
