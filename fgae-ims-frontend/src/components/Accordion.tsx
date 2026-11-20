@@ -4,7 +4,7 @@ import { Button } from './Button'
 
 export function Accordion({ id, label, children, initialOpen = false }: { id: string; label: string; children: ReactNode; initialOpen?: boolean }) {
   const [open, setOpen] = useState(initialOpen)
-  return <div className="ui-accordion"><Button className="accordion-trigger" aria-expanded={open} aria-controls={`${id}-panel`} onClick={() => setOpen(!open)}>{label}<CaretDownIcon size={18} aria-hidden="true" /></Button><div id={`${id}-panel`} className="accordion-panel" hidden={!open}>{children}</div></div>
+  return <div className="ui-accordion"><Button className="accordion-trigger" aria-expanded={open} aria-controls={`${id}-panel`} onClick={() => setOpen(!open)}>{label}<CaretDownIcon size={18} aria-hidden="true" /></Button><div id={`${id}-panel`} className="accordion-panel" data-open={open} aria-hidden={!open} inert={!open}><div className="accordion-content">{children}</div></div></div>
 }
 
 export function AccordionSelect({ id, label, value, options, onChange, disabled = false, hideLabel = false, 'aria-invalid': invalid, 'aria-describedby': describedBy }: { disabled?: boolean; hideLabel?: boolean; 'aria-invalid'?: boolean; 'aria-describedby'?: string; id: string; label: string; value: string; options: { value: string; label: string }[]; onChange: (value: string) => void }) {

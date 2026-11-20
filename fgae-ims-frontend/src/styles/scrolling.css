@@ -30,3 +30,5 @@ html {
   ::-webkit-scrollbar-thumb { background: ButtonText; border-color: Canvas; }
   ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: Canvas; }
 }
+/* Desktop sidebar hands scrolling back to the page at either edge. */
+@media (min-width: 1201px) { .workspace-sidebar { overscroll-behavior-y: auto; } }

@@ -71,7 +71,10 @@
 .accordion-trigger:hover { background: var(--pale-sky); }
 .accordion-trigger > svg { flex-shrink: 0; transition: transform 180ms ease; }
 .accordion-trigger[aria-expanded='true'] > svg { transform: rotate(180deg); }
-.accordion-panel:not([hidden]), .accordion-options:not([hidden]) { animation: accordion-reveal 160ms ease-out; }
+.accordion-options:not([hidden]) { animation: accordion-reveal 160ms ease-out; }
+.accordion-panel { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows 220ms var(--ease-out), opacity 180ms ease, visibility 0s linear 220ms; }
+.accordion-panel[data-open="true"] { grid-template-rows: 1fr; opacity: 1; visibility: visible; transition-delay: 0s; }
+.accordion-content { min-height: 0; overflow: hidden; }
 .accordion-panel a { display: block; margin: 4px 0; padding: 10px 12px; border-radius: 8px; color: var(--muted); font-size: 13px; text-decoration: none; overflow-wrap: anywhere; }
 .accordion-panel a:hover, .accordion-panel a[aria-current='page'] { color: var(--action); background: var(--pale-sky); }
 .accordion-panel a[aria-current='page'] { font-weight: 650; box-shadow: inset 3px 0 var(--action); }
