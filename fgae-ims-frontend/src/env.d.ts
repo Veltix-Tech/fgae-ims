@@ -42,3 +42,7 @@ declare module '@manager-overview-adapter' {
 declare module '@participant-overview-adapter' {
   export const participantOverviewService: import('./services/contracts/participant-overview').ParticipantOverviewService
 }
+
+declare module '@portfolio-adapter' {
+  export const portfolioService: import('./services/contracts/portfolio').PortfolioService
+}

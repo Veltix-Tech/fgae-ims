@@ -1,3 +1,5 @@
+import { portfolioKinds, portfolioPath } from './services/contracts/portfolio'
+import './styles/portfolio.css'
 import { participantKinds } from './services/contracts/participant-overview'
 import './styles/participants.css'
 import { StrictMode } from 'react'
@@ -20,8 +22,9 @@ import { managerKinds } from './services/contracts/manager-overview'
 // Only reviewed/current pages are routed; future destinations have no placeholder UI.
 const managerPage = managerKinds.find(kind => window.location.pathname === `/workspaces/${kind}`)
 const participantPage = participantKinds.find(kind => window.location.pathname === `/workspaces/${kind}`)
-const page = participantPage ?? managerPage ?? (window.location.pathname === '/workspaces/hr' ? 'hr' : window.location.pathname === '/workspaces/super-admin' ? 'overview' : window.location.pathname === '/account' ? 'account' : window.location.pathname === '/my-application/edit' ? 'corrections' : window.location.pathname === '/my-application' ? 'application' : window.location.pathname === '/register' ? 'register' : window.location.pathname === '/first-login' ? 'first' : window.location.pathname === '/reset-password' ? 'reset' : window.location.pathname === '/forgot-password' ? 'recovery' : 'sign-in')
-const protectedEntry = !participantPage && !managerPage && !['/', '/sign-in', '/forgot-password', '/reset-password', '/first-login', '/register', '/my-application', '/my-application/edit', '/account', '/workspaces/super-admin', '/workspaces/hr'].includes(window.location.pathname)
+const portfolioPage = portfolioKinds.find(kind => window.location.pathname === portfolioPath(kind))
+const page = portfolioPage ?? participantPage ?? managerPage ?? (window.location.pathname === '/workspaces/hr' ? 'hr' : window.location.pathname === '/workspaces/super-admin' ? 'overview' : window.location.pathname === '/account' ? 'account' : window.location.pathname === '/my-application/edit' ? 'corrections' : window.location.pathname === '/my-application' ? 'application' : window.location.pathname === '/register' ? 'register' : window.location.pathname === '/first-login' ? 'first' : window.location.pathname === '/reset-password' ? 'reset' : window.location.pathname === '/forgot-password' ? 'recovery' : 'sign-in')
+const protectedEntry = !portfolioPage && !participantPage && !managerPage && !['/', '/sign-in', '/forgot-password', '/reset-password', '/first-login', '/register', '/my-application', '/my-application/edit', '/account', '/workspaces/super-admin', '/workspaces/hr'].includes(window.location.pathname)
 // C-AUTH-06: the email link carries a fragment token, consumed into memory and removed from history.
 const resetTokens = page === 'reset' ? new URLSearchParams(window.location.hash.slice(1)).getAll('token') : []
 const resetToken = resetTokens.length === 1 && resetTokens[0]!.length <= 2048 ? resetTokens[0]! : ''

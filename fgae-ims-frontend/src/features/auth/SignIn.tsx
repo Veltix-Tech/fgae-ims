@@ -1,3 +1,4 @@
+import { canReadPortfolio, portfolioKinds, portfolioPath } from '../../services/contracts/portfolio'
 import { canReadParticipant, participantKinds } from '../../services/contracts/participant-overview'
 import { canReadManager, managerKinds } from '../../services/contracts/manager-overview'
 import { canReadHr } from '../../services/contracts/hr-overview'
@@ -136,6 +137,7 @@ export function SignIn({ service = authService, protectedEntry = false }: { serv
       {canReadOwnApplication(identity) && <a href="/my-application" className="primary action-link first-continue">{t('appLink')}<ArrowRightIcon size={20} aria-hidden="true" /></a>}
       {canReadOverview(identity) && <a className="primary action-link" href="/workspaces/super-admin">{t('homeLink')}</a>}
       {canReadHr(identity) && <a className="primary action-link" href="/workspaces/hr">{t('hrLink')}</a>}
+      {portfolioKinds.filter(kind => canReadPortfolio(identity, kind)).map(kind => <a key={kind} className="primary action-link" href={portfolioPath(kind)}>{t(kind === 'project-manager' ? 'projectLink' : kind === 'member' ? 'memberLink' : 'usersLink')}</a>)}
       {participantKinds.filter(kind => canReadParticipant(identity, kind)).map(kind => <a key={kind} className="primary action-link" href={`/workspaces/${kind}`}>{t(kind === 'field-supervisor' ? 'supervisorLink' : kind === 'finance-officer' ? 'financeLink' : 'volunteerLink')}</a>)}
       {managerKinds.filter(kind => canReadManager(identity, kind)).map(kind => <a key={kind} className="primary action-link" href={`/workspaces/${kind}`}>{t(kind === 'area-manager' ? 'areaLink' : kind === 'branch-manager' ? 'branchLink' : 'vmLink')}</a>)}
       {canManageAccount(identity) && <a href="/account" className="secondary action-link first-continue">{t('acctLink')}</a>}

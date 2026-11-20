@@ -1,5 +1,7 @@
 import { AuthError, roles, type Identity, type Role, type RoleGrant, type Scope } from '../contracts/auth'
 
+export function normalizeApiRole(value: unknown) { return value === 'SYSTEM_ADMIN' ? 'SUPER_ADMIN' : value }
+
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new AuthError('INVALID_RESPONSE')
   return value as Record<string, unknown>
@@ -20,7 +22,7 @@ export function mapIdentity(value: unknown): Identity {
   const grants: RoleGrant[] = []
   for (const entry of dto.role_grants) {
     const grant = record(entry)
-    const role = grant.role === 'SYSTEM_ADMIN' ? 'SUPER_ADMIN' : grant.role
+    const role = normalizeApiRole(grant.role)
     // Unknown roles never acquire capabilities. Backend identifiers need agreement (C-AUTH-01).
     if (!roles.includes(role as Role)) continue
     const scope = record(grant.scope)
