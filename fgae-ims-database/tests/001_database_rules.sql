@@ -1,5 +1,4 @@
 -- =====================================================================
-
 -- helper: run a statement and compare the outcome with what we expect.
 --   expected = 'ok'        -> the statement must succeed
 --   expected = '<SQLSTATE>' -> it must fail with that error code
@@ -138,6 +137,34 @@ BEGIN
     'INSERT INTO volunteer_attendance (id, "activityDate", "assignmentId", "checkIn", "checkOut") VALUES (gen_random_uuid(), current_date + 4, %L, %L, %L)', asg, '16:00', '08:00'), '23514');
   results := results || pg_temp.expect('attendance: a valid GPS point is accepted', format(
     'INSERT INTO volunteer_attendance (id, "activityDate", "assignmentId", latitude, longitude) VALUES (gen_random_uuid(), current_date + 5, %L, 9.0054, 38.7636)', asg), 'ok');
+
+  -- Partition upkeep (the scheduled job keeps these true)
+  SELECT count(*) INTO n FROM generate_series(0, 5) AS i
+   WHERE to_regclass(format('public.%I', 'volunteer_attendance_' ||
+         to_char(date_trunc('month', current_date) + make_interval(months => i), '"y"YYYY"m"MM'))) IS NULL;
+  IF n = 0 THEN
+    results := results || 'PASS  partitions: this month and the next 5 all have a partition'::text;
+  ELSE
+    results := results || ('FAIL  partitions: ' || n || ' of the next 6 months have no partition (run: select public.create_attendance_partitions(24);)');
+  END IF;
+
+  SELECT count(*) INTO n FROM volunteer_attendance_default WHERE "activityDate" < current_date + interval '6 months';
+  IF n = 0 THEN
+    results := results || 'PASS  partitions: no near-term attendance is stuck in the default partition'::text;
+  ELSE
+    results := results || ('FAIL  partitions: ' || n || ' near-term attendance row(s) sit in the default partition');
+  END IF;
+
+  IF to_regprocedure('public.create_attendance_partitions(integer)') IS NULL THEN
+    results := results || 'FAIL  partition job: function public.create_attendance_partitions does not exist (apply the partition migration)'::text;
+  ELSE
+    IF has_function_privilege('anon', 'public.create_attendance_partitions(integer)', 'EXECUTE')
+       OR has_function_privilege('authenticated', 'public.create_attendance_partitions(integer)', 'EXECUTE') THEN
+      results := results || 'FAIL  partition job: anon or authenticated can run create_attendance_partitions through the API'::text;
+    ELSE
+      results := results || 'PASS  partition job: the API roles cannot run create_attendance_partitions'::text;
+    END IF;
+  END IF;
 
   -- ------------------------------------------------------------------
   -- 2. Money and dates must make sense

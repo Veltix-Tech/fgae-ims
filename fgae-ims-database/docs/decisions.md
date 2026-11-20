@@ -16,6 +16,7 @@
 14. Are approval and disbursement separate permissions?
 Does AuditLog need before and after values and partitioning?
 15. Who creates the first SUPER_ADMIN and Organization?
+16. “Budget limit is not enforced by the database. Should the backend check it in a transaction using the version column, or should a trigger enforce it?”
 ## Answered
 - Application flow: SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED
 - Model names: PascalCase singular (no @@map)
