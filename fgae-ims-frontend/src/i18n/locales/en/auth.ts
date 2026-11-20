@@ -81,7 +81,7 @@ export const en = {
   SESSION_EXPIRED: 'Your session has ended. Sign in again to continue.',
   INVALID_RESPONSE: 'We couldn’t confirm your account details. Please try again or contact your administrator.',
   STORAGE_UNAVAILABLE: 'Your browser couldn’t save this session. Allow site storage and try again.',
-  navMain: 'Navigation', navAdministration: 'Administration', navWorkspaces: 'Workspaces', navGoTo: 'Go to', navAllWorkspaces: 'All my workspaces',
+  navClose: 'Close navigation', navMain: 'Navigation', navAdministration: 'Administration', navWorkspaces: 'Workspaces', navGoTo: 'Go to', navAllWorkspaces: 'All my workspaces',
   signedIn: 'You’re signed in', workspace: 'Choose a workspace below to get started.',
   application: 'View your application for its current status and decision history.',
   passwordChange: 'You need to change your temporary password before continuing.',

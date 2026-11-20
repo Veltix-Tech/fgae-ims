@@ -82,7 +82,7 @@ export const am: Record<TranslationKey, string> = {
   SESSION_EXPIRED: 'ክፍለ ጊዜዎ አልቋል. ለመቀጠል እንደገና ይግቡ.',
   INVALID_RESPONSE: 'የመለያዎን መረጃ ማረጋገጥ አልቻልንም. እንደገና ይሞክሩ ወይም አስተዳዳሪዎን ያነጋግሩ.',
   STORAGE_UNAVAILABLE: 'አሳሽዎ ይህን ክፍለ ጊዜ ማስቀመጥ አልቻለም. የድረ ገጽ ማከማቻን ፈቅደው እንደገና ይሞክሩ.',
-  navMain: 'መዳረሻዎች', navAdministration: 'አስተዳደር', navWorkspaces: 'የሥራ ገጾች', navGoTo: 'ይሂዱ', navAllWorkspaces: 'ሁሉም የሥራ ገጾቼ',
+  navClose: 'መዳረሻዎችን ዝጋ', navMain: 'መዳረሻዎች', navAdministration: 'አስተዳደር', navWorkspaces: 'የሥራ ገጾች', navGoTo: 'ይሂዱ', navAllWorkspaces: 'ሁሉም የሥራ ገጾቼ',
   signedIn: 'ገብተዋል', workspace: 'ለመጀመር ከታች ያሉትን የሥራ ገጾች ይምረጡ.',
   application: 'የአሁኑን ሁኔታ እና የውሳኔ ታሪክ ለማየት ማመልከቻዎን ይመልከቱ.',
   passwordChange: 'ከመቀጠልዎ በፊት ጊዜያዊ የይለፍ ቃልዎን መቀየር አለብዎት.',

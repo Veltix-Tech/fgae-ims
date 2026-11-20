@@ -1,0 +1,32 @@
+/* Shared native scrolling: no wheel interception or artificial momentum. */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-block: 24px;
+  scrollbar-gutter: stable;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--control-border) var(--pale-sky);
+}
+.workspace-sidebar, .accordion-options {
+  scroll-behavior: smooth;
+  scroll-padding-block: 12px;
+  overscroll-behavior-y: contain;
+}
+/* Rounded tracks in engines exposing scrollbar pseudo-elements. */
+@supports selector(::-webkit-scrollbar) {
+  * { scrollbar-width: auto; scrollbar-color: auto; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--pale-sky); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb { background: var(--control-border); border: 2px solid var(--pale-sky); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--action); }
+  ::-webkit-scrollbar-corner { background: var(--canvas); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html, .workspace-sidebar, .accordion-options { scroll-behavior: auto; }
+}
+@media (forced-colors: active) {
+  * { scrollbar-color: auto; scrollbar-width: auto; }
+  ::-webkit-scrollbar-thumb { background: ButtonText; border-color: Canvas; }
+  ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: Canvas; }
+}

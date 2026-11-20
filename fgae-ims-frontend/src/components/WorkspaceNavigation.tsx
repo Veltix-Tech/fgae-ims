@@ -1,5 +1,7 @@
 import { canReadOwnApplication } from '../services/contracts/application'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { ListIcon, XIcon } from '@phosphor-icons/react'
+import { Button } from './Button'
 import { authService } from '@auth-adapter'
 import type { Identity } from '../services/contracts/auth'
 import { canReadOverview } from '../services/contracts/overview'
@@ -15,6 +17,25 @@ import { Accordion } from './Accordion'
 export function WorkspaceNavigation() {
   const { t } = useLocale()
   const [identity, setIdentity] = useState<Identity | null>(null)
+  const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 1200px)').matches)
+  const [open, setOpen] = useState(false)
+  const canOpen = !!identity && !identity.mustChangePassword
+  const dialog = useRef<HTMLDialogElement>(null)
+  const trigger = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1200px)')
+    const resize = () => { setMobile(media.matches); setOpen(false) }
+    media.addEventListener('change', resize)
+    return () => media.removeEventListener('change', resize)
+  }, [])
+  useEffect(() => {
+    const sheet = dialog.current
+    if (!open || !mobile || !canOpen || !sheet) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    sheet.showModal()
+    return () => { sheet.close(); document.body.style.overflow = previousOverflow }
+  }, [open, mobile, canOpen])
   useEffect(() => {
     let controller: AbortController | undefined
     const refresh = () => {
@@ -42,5 +63,12 @@ export function WorkspaceNavigation() {
     {overview.length > 0 && <Accordion id="nav-workspaces" label={t('navWorkspaces')} initialOpen>{links(overview)}</Accordion>}
     {canManageAccount(identity) && <Accordion id="nav-account" label={t('acctLink')}>{links([{ href: '/account', label: 'acctLink' }, ...(canReadOwnApplication(identity) ? [{ href: '/my-application', label: 'appLink' as const }] : []), { href: '/sign-in', label: 'navAllWorkspaces' }])}</Accordion>}
   </>
-  return <aside className="workspace-sidebar"><nav aria-label={t('navMain')}><p className="eyebrow navigation-heading">{t('navMain')}</p><Accordion id="nav-mobile" label={t('navMain')}>{groups}</Accordion></nav></aside>
+  if (mobile) return <aside className="mobile-navigation-dock">
+    <Button ref={trigger} className="mobile-navigation-button" aria-haspopup="dialog" aria-expanded={open} aria-controls="mobile-navigation-sheet" onClick={() => setOpen(true)}><ListIcon size={22} aria-hidden="true" />{t('navMain')}</Button>
+    <dialog id="mobile-navigation-sheet" className="mobile-navigation-sheet" ref={dialog} aria-labelledby="mobile-navigation-title" onClose={() => { setOpen(false); trigger.current?.focus({ preventScroll: true }) }} onClick={event => { if (event.target === event.currentTarget) { const bounds = event.currentTarget.getBoundingClientRect(); if (event.clientY < bounds.top || event.clientX < bounds.left || event.clientX > bounds.right) setOpen(false) } }}>
+      <div className="mobile-navigation-heading"><h2 id="mobile-navigation-title">{t('navMain')}</h2><Button className="mobile-navigation-close" aria-label={t('navClose')} onClick={() => setOpen(false)}><XIcon size={23} aria-hidden="true" /></Button></div>
+      <nav aria-label={t('navMain')}>{groups}</nav>
+    </dialog>
+  </aside>
+  return <aside className="workspace-sidebar"><nav aria-label={t('navMain')}><p className="eyebrow navigation-heading">{t('navMain')}</p>{groups}</nav></aside>
 }
