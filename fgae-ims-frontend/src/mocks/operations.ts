@@ -9,18 +9,18 @@ export const workLocations: WorkLocation[] = [
   { id: 'fictional-branch-a', areaId: 'fictional-area-a', kind: 'branch', name: 'Demo branch A' },
   { id: 'fictional-branch-b', areaId: 'fictional-area-b', kind: 'branch', name: 'Demo branch B' },
 ]
-const allocations = [
+export const allocations = [
   { id: 'synthetic-work-outreach', title: 'Community outreach', areaId: 'fictional-area-a', branchId: 'fictional-branch-a', state: 'ACTIVE' as const, dueAt: '2026-11-25T14:00:00Z', target: 3 },
   { id: 'synthetic-work-education', title: 'Youth education session', areaId: 'fictional-area-a', branchId: 'fictional-branch-a', state: 'PLANNED' as const, dueAt: '2026-11-28T14:00:00Z', target: 2 },
   { id: 'synthetic-work-incoming', title: 'Community information session', areaId: 'fictional-area-a', branchId: null, state: 'PLANNED' as const, dueAt: '2026-12-02T14:00:00Z', target: 2 },
   { id: 'synthetic-work-completed', title: 'Volunteer orientation', areaId: 'fictional-area-a', branchId: 'fictional-branch-a', state: 'COMPLETED' as const, dueAt: '2026-11-12T14:00:00Z', target: 1 },
   { id: 'synthetic-work-outside', title: 'Branch B outreach', areaId: 'fictional-area-b', branchId: 'fictional-branch-b', state: 'ACTIVE' as const, dueAt: '2026-11-26T14:00:00Z', target: 1 },
 ]
-const assignments = [
+export const assignments = [
   { id: 'assignment-1', workId: 'synthetic-work-outreach', volunteerId: 'fictional-person-7', supervisorId: null },
   { id: 'assignment-2', workId: 'synthetic-work-completed', volunteerId: 'fictional-person-7', supervisorId: 'fictional-person-5' },
 ]
-const attendance = [{ id: 'attendance-1', assignmentId: 'assignment-1', state: 'PENDING' }, { id: 'attendance-2', assignmentId: 'assignment-2', state: 'APPROVED' }]
+export const attendance = [{ id: 'attendance-1', assignmentId: 'assignment-1', state: 'PENDING' }, { id: 'attendance-2', assignmentId: 'assignment-2', state: 'APPROVED' }]
 export function readWorkRows(level: 'area' | 'branch'): WorkRow[] {
   return allocations.filter(row => level === 'area' || row.branchId).map(row => {
     const assigned = assignments.filter(item => item.workId === row.id)

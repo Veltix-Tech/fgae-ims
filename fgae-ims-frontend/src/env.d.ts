@@ -38,3 +38,7 @@ declare module '@hr-overview-adapter' {
 declare module '@manager-overview-adapter' {
   export const managerOverviewService: import('./services/contracts/manager-overview').ManagerOverviewService
 }
+
+declare module '@participant-overview-adapter' {
+  export const participantOverviewService: import('./services/contracts/participant-overview').ParticipantOverviewService
+}

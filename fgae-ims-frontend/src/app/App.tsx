@@ -1,3 +1,5 @@
+import { ParticipantOverview } from '../features/workspaces/ParticipantOverview'
+import type { ParticipantKind } from '../services/contracts/participant-overview'
 import { ManagerOverview } from '../features/workspaces/ManagerOverview'
 import type { ManagerKind } from '../services/contracts/manager-overview'
 import { HrOverview } from '../features/workspaces/HrOverview'
@@ -14,18 +16,19 @@ import { ResetPassword } from '../features/auth/ResetPassword'
 import { FirstLogin } from '../features/auth/FirstLogin'
 import { Register } from '../features/auth/Register'
 
-export function App({ protectedEntry = false, page = 'sign-in', resetToken = '' }: { protectedEntry?: boolean; page?: 'sign-in' | 'recovery' | 'reset' | 'first' | 'register' | 'application' | 'corrections' | 'account' | 'overview' | 'hr' | ManagerKind; resetToken?: string }) {
+export function App({ protectedEntry = false, page = 'sign-in', resetToken = '' }: { protectedEntry?: boolean; page?: 'sign-in' | 'recovery' | 'reset' | 'first' | 'register' | 'application' | 'corrections' | 'account' | 'overview' | 'hr' | ManagerKind | ParticipantKind; resetToken?: string }) {
   const { t } = useLocale()
+  const participantPage = page === 'field-supervisor' || page === 'finance-officer' || page === 'volunteer'
   const managerPage = page === 'area-manager' || page === 'branch-manager' || page === 'volunteer-manager'
-  const headingId = managerPage ? 'manager-heading' : page === 'hr' ? 'hr-heading' : page === 'overview' ? 'overview-heading' : page === 'account' ? 'account-heading' : page === 'corrections' ? 'correction-heading' : page === 'application' ? 'application-heading' : page === 'register' ? 'register-heading' : page === 'first' ? 'first-heading' : page === 'reset' ? 'reset-heading' : page === 'recovery' ? 'recovery-heading' : 'sign-in-heading'
+  const headingId = participantPage ? 'participant-heading' : managerPage ? 'manager-heading' : page === 'hr' ? 'hr-heading' : page === 'overview' ? 'overview-heading' : page === 'account' ? 'account-heading' : page === 'corrections' ? 'correction-heading' : page === 'application' ? 'application-heading' : page === 'register' ? 'register-heading' : page === 'first' ? 'first-heading' : page === 'reset' ? 'reset-heading' : page === 'recovery' ? 'recovery-heading' : 'sign-in-heading'
   return <>
-    <a className="skip-link" href={`#${headingId}`}>{t(managerPage ? 'mgrSkip' : page === 'hr' ? 'hrSkip' : page === 'overview' ? 'homeSkip' : page === 'account' ? 'acctSkip' : page === 'corrections' ? 'corrSkip' : page === 'application' ? 'appSkip' : page === 'register' ? 'regSkip' : page === 'first' ? 'firstSkip' : page === 'reset' ? 'resetSkip' : page === 'recovery' ? 'recoverySkip' : 'skip')}</a>
+    <a className="skip-link" href={`#${headingId}`}>{t(participantPage || managerPage ? 'mgrSkip' : page === 'hr' ? 'hrSkip' : page === 'overview' ? 'homeSkip' : page === 'account' ? 'acctSkip' : page === 'corrections' ? 'corrSkip' : page === 'application' ? 'appSkip' : page === 'register' ? 'regSkip' : page === 'first' ? 'firstSkip' : page === 'reset' ? 'resetSkip' : page === 'recovery' ? 'recoverySkip' : 'skip')}</a>
     <header className="site-header motion-enter">
       <div className="brand"><img src="/brand/mark.svg" width="46" height="46" alt="" /><div><span className="wordmark">FGAE<span className="wordmark-divider">/</span><span className="ims">IMS</span></span><p>{t('organization')}</p></div></div>
       <LanguageSelector />
     </header>
-    <main className={managerPage || page === 'hr' || page === 'overview' || page === 'application' || page === 'corrections' || page === 'account' ? 'application-layout' : 'auth-layout'}>
-      {managerPage ? <ManagerOverview key={page} kind={page} /> : page === 'hr' ? <HrOverview /> : page === 'overview' ? <SuperAdmin /> : page === 'account' ? <Account /> : page === 'corrections' ? <CorrectApplication /> : page === 'application' ? <MyApplication /> : <>
+    <main className={participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'application' || page === 'corrections' || page === 'account' ? 'application-layout' : 'auth-layout'}>
+      {participantPage ? <ParticipantOverview key={page} kind={page} /> : managerPage ? <ManagerOverview key={page} kind={page} /> : page === 'hr' ? <HrOverview /> : page === 'overview' ? <SuperAdmin /> : page === 'account' ? <Account /> : page === 'corrections' ? <CorrectApplication /> : page === 'application' ? <MyApplication /> : <>
       <section className="welcome-panel motion-enter" aria-labelledby="welcome-heading">
         <p className="eyebrow">{t('eyebrow')}</p>
         <h2 id="welcome-heading">{t('headline')}</h2>

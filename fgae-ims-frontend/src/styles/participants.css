@@ -1,0 +1,5 @@
+.participant-next { border-top: 1px solid var(--divider); margin-top: 24px; padding-top: 18px; }
+.participant-page .workspace-metric .workspace-value { font-size: clamp(1.5rem, 3vw, 2rem); overflow-wrap: anywhere; }
+.participant-page .workspace-records time, .participant-page .workspace-records .workspace-badge { margin-left: 0; }
+
+.participant-page .workspace-nav { flex-wrap: wrap; }

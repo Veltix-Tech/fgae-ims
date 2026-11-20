@@ -1,3 +1,4 @@
+import { participants } from './participants'
 import { managers } from './managers'
 import { hr } from './hr'
 import { overview } from './overview'
@@ -12,7 +13,7 @@ export const en = {
   ...account,
   ...overview,
   ...hr,
-  ...managers,
+  ...managers, ...participants,
   firstTitle: 'Set your password · FGAE IMS', firstSkip: 'Skip to password setup', firstEyebrow: 'FIRST SIGN-IN',
   firstHeading: 'Make this account yours', firstIntro: 'Replace your temporary password with one only you know. You’ll sign in again with your new password.',
   firstCheckingHeading: 'Checking your account', firstCurrent: 'Temporary password', firstCurrentRequired: 'Enter the temporary password you used to sign in.',
