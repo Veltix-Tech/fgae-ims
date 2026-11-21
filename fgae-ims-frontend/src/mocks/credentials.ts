@@ -1,3 +1,5 @@
+import { AccessError, canAdminUsers, validateAccess, type AccessInput, type AccessRecord, type AccessScope } from '../services/contracts/user-access'
+import type { DirectoryUser } from '../services/contracts/portfolio'
 import { ResetError, validNewPassword, type ResetRequest } from '../services/contracts/reset-password'
 import { accounts } from './identities'
 import { FirstLoginError, type FirstLoginInput } from '../services/contracts/first-login'
@@ -7,10 +9,10 @@ import { AccountError, accountFields, canManageAccount, type AccountInput, type 
 
 const STORE = 'fgae.synthetic.credentials.v1'
 const INITIAL_PASSWORD = 'Demo-only-2026!'
-type Credential = { salt: string; digest: string; revision: number; firstLogin?: { key: string; digest: string; previousRevision: number }; passwordChange?: { key: string; digest: string; previousRevision: number } }
+type Credential = { temporary?: boolean; salt: string; digest: string; revision: number; firstLogin?: { key: string; digest: string; previousRevision: number }; passwordChange?: { key: string; digest: string; previousRevision: number } }
 type Link = { token: string; email: string; expiresAt: number; usedAt?: number; completionKey?: string; completionDigest?: string }
 type Application = { identity: Identity; fields: RegistrationInput['fields']; documents: RegistrationInput['documents']; receipt: RegistrationReceipt; key: string; digest: string }
-type State = { version: 1; credentials: Record<string, Credential>; links: Link[]; applications?: Application[]; profiles?: Record<string, AccountProfile> }
+type State = { version: 1; credentials: Record<string, Credential>; links: Link[]; applications?: Application[]; profiles?: Record<string, AccountProfile>; access?: Record<string, AccessRecord>; accessReceipts?: Record<string, { actorId: string; payload: string; record: AccessRecord }> }
 function read(): State {
   try {
     const raw = localStorage.getItem(STORE)
@@ -44,7 +46,10 @@ export function readOwnApplication(ownerId: string) {
 export function readRegisteredIdentities() { return structuredClone(read().applications?.map(application => application.identity) ?? []) }
 export function findAccount(email: string) {
   const state = read(); const identity = accounts.find(item => item.email === email.toLowerCase()) ?? state.applications?.find(item => item.identity.email === email.toLowerCase())?.identity
-  return identity ? { ...identity, name: state.profiles?.[identity.id]?.name ?? identity.name } : undefined
+  const override = identity ? state.access?.[identity.id]?.user : Object.values(state.access ?? {}).find(record => record.user.email === email.toLowerCase())?.user
+  if (override && !['ACTIVE', 'PENDING'].includes(override.state)) return undefined
+  const current = override ? { ...override, email: identity?.email ?? override.email, accountState: override.state as Identity['accountState'] } : identity
+  return current ? { ...current, name: state.profiles?.[current.id]?.name ?? current.name } : undefined
 }
 export function readProfile(identity: Identity): AccountProfile {
   const state = read()
@@ -69,7 +74,7 @@ export async function changeAccountPassword(input: FirstLoginInput, getSession: 
     signal?.throwIfAborted(); const session = getSession()
     if (!session || session.expiresAt <= Date.now()) throw new AccountError('SESSION_EXPIRED')
     const identity = findAccount(session.email); const state = read(); const previous = state.credentials[session.email]
-    if (!identity || !canManageAccount({ ...identity, mustChangePassword: identity.mustChangePassword && !previous?.revision })) throw new AccountError('FORBIDDEN')
+    if (!identity || !canManageAccount({ ...identity, mustChangePassword: requiresPasswordChange(identity) })) throw new AccountError('FORBIDDEN')
     const payload = await digest(JSON.stringify([input.currentPassword, input.password, input.confirmation]), input.idempotencyKey)
     signal?.throwIfAborted()
     if (previous?.passwordChange?.key === input.idempotencyKey && previous.passwordChange.digest === payload && previous.passwordChange.previousRevision === (session.credentialRevision ?? 0)) return
@@ -180,7 +185,7 @@ export async function completeFirstLogin(input: FirstLoginInput, getSession: () 
     signal?.throwIfAborted()
     const session = getSession()
     if (!session || session.expiresAt <= Date.now()) throw new FirstLoginError('SESSION_EXPIRED')
-    const account = accounts.find(item => item.email === session.email)
+    const account = findAccount(session.email)
     if (!account?.mustChangePassword) throw new FirstLoginError('NOT_REQUIRED')
     const state = read()
     const previous = state.credentials[session.email]
@@ -188,11 +193,11 @@ export async function completeFirstLogin(input: FirstLoginInput, getSession: () 
     signal?.throwIfAborted()
     if (previous?.firstLogin?.key === input.idempotencyKey && previous.firstLogin.digest === payloadDigest && previous.firstLogin.previousRevision === (session.credentialRevision ?? 0)) return
     if ((session.credentialRevision ?? 0) !== (previous?.revision ?? 0)) throw new FirstLoginError('SESSION_EXPIRED')
-    if (previous?.revision) throw new FirstLoginError('NOT_REQUIRED')
+    if (previous?.revision && !previous.temporary) throw new FirstLoginError('NOT_REQUIRED')
     if (!await verifyCredential(session.email, input.currentPassword)) throw new FirstLoginError('WRONG_PASSWORD')
     if (input.password === input.currentPassword) throw new FirstLoginError('SAME_PASSWORD')
     const salt = crypto.randomUUID()
-    const credential: Credential = { salt, digest: await digest(input.password, salt), revision: 1,
+    const credential: Credential = { salt, digest: await digest(input.password, salt), revision: (previous?.revision ?? 0) + 1,
       firstLogin: { key: input.idempotencyKey, digest: payloadDigest, previousRevision: session.credentialRevision ?? 0 } }
     signal?.throwIfAborted()
     const current = getSession()
@@ -200,5 +205,44 @@ export async function completeFirstLogin(input: FirstLoginInput, getSession: () 
     state.credentials[session.email] = credential
     state.links = state.links.map(link => link.email === session.email && !link.usedAt ? { ...link, usedAt: Date.now() } : link)
     write(state)
+  })
+}
+
+export function requiresPasswordChange(identity: Identity) { const credential = read().credentials[identity.email]; return credential?.temporary ?? (identity.mustChangePassword && !credential?.revision) }
+export function accessRecord(id: string) { return structuredClone(read().access?.[id] ?? null) }
+export function applyAccessDirectory(rows: DirectoryUser[]) {
+  const state = read(); const result = new Map(rows.map(row => [row.id, row]))
+  for (const record of Object.values(state.access ?? {})) result.set(record.user.id, structuredClone(record.user))
+  return [...result.values()].map(row => ({ ...row, name: state.profiles?.[row.id]?.name ?? row.name, mustChangePassword: state.credentials[row.email]?.temporary ?? (row.mustChangePassword && !state.credentials[row.email]?.revision) }))
+}
+export async function mutateAccess(input: AccessInput, scopes: AccessScope[], list: () => DirectoryUser[], guard: () => Promise<Identity>, signal?: AbortSignal) {
+  return locked(async () => {
+    const actor = await guard(); if (!canAdminUsers(actor)) throw new AccessError('FORBIDDEN')
+    signal?.throwIfAborted(); validateAccess(input, scopes)
+    const state = read(); const payload = JSON.stringify(input); const prior = state.accessReceipts?.[input.idempotencyKey]
+    if (prior) { if (prior.actorId !== actor.id || prior.payload !== payload) throw new AccessError('CONFLICT'); return { ownerId: actor.id, record: structuredClone(prior.record), temporaryPassword: null, replayed: true } }
+    const all = list(); const before = input.id ? all.find(row => row.id === input.id) : undefined
+    if (input.id && !before) throw new AccessError('NOT_FOUND')
+    if (input.state === 'PENDING' && before?.state !== 'PENDING') throw new AccessError('VALIDATION')
+    if (input.version !== (before ? state.access?.[before.id]?.version ?? 1 : 0)) throw new AccessError('CONFLICT')
+    if (before && (before.email !== input.email || before.name !== input.name)) throw new AccessError('CONFLICT')
+    if (!before && (all.some(row => row.email.toLowerCase() === input.email.trim().toLowerCase()) || findAccount(input.email))) throw new AccessError('EMAIL_IN_USE')
+    if (input.reset && before?.id === actor.id) throw new AccessError('SELF_RESET')
+    const id = before?.id ?? `synthetic-admin-${crypto.randomUUID()}`
+    const admin = (row: DirectoryUser) => row.state === 'ACTIVE' && !row.mustChangePassword && row.grants.some(grant => grant.role === 'SUPER_ADMIN' && grant.scope.kind === 'global' && grant.scope.id === '*')
+    const user: DirectoryUser = { id, name: input.name.trim(), email: input.email.trim().toLowerCase(), state: input.state, mustChangePassword: !before || input.reset ? true : before.mustChangePassword, grants: input.grants.map(grant => ({ ...grant, scope: { ...grant.scope, id: ['self','supervision'].includes(grant.scope.kind) && grant.scope.id === '@self' ? id : grant.scope.id }, scopeName: scopes.find(scope => scope.kind === grant.scope.kind && scope.id === grant.scope.id)!.name })) }
+    if (before && admin(before) && !admin(user) && !all.some(row => row.id !== id && admin(row))) throw new AccessError('LAST_ADMIN')
+    const temporaryPassword = !before || input.reset ? `Fgae-${crypto.randomUUID()}!` : null
+    const emails = new Set([user.email, ...accounts.filter(row => row.id === id).map(row => row.email)])
+    for (const email of emails) {
+      const current = state.credentials[email]; const salt = temporaryPassword ? crypto.randomUUID() : current?.salt ?? crypto.randomUUID()
+      state.credentials[email] = { salt, digest: temporaryPassword ? await digest(temporaryPassword, salt) : current?.digest ?? await digest(INITIAL_PASSWORD, salt), revision: (current?.revision ?? 0) + 1, temporary: temporaryPassword ? true : user.mustChangePassword }
+    }
+    state.links = state.links.map(link => emails.has(link.email) && !link.usedAt ? { ...link, usedAt: Date.now() } : link)
+    const record: AccessRecord = { user, version: input.version + 1, history: [...(state.access?.[id]?.history ?? []), { id: crypto.randomUUID(), at: new Date().toISOString(), actor: actor.name, actorId: actor.id, action: !before ? 'CREATE' : input.reset ? 'RESET' : 'UPDATE', reason: input.reason.trim(), before: before ?? null, after: user }] }
+    state.access = { ...state.access, [id]: record }; state.accessReceipts = { ...state.accessReceipts, [input.idempotencyKey]: { actorId: actor.id, payload, record } }
+    signal?.throwIfAborted(); const freshActor = await guard(); if (freshActor.id !== actor.id || !canAdminUsers(freshActor)) throw new AccessError('SESSION_EXPIRED')
+    write(state)
+    return { ownerId: actor.id, record: structuredClone(record), temporaryPassword, replayed: false }
   })
 }

@@ -1,3 +1,4 @@
+import { userAccess } from './user-access'
 import { portfolio } from './portfolio'
 import { participants } from './participants'
 import { managers } from './managers'
@@ -8,6 +9,7 @@ import { corrections } from './corrections'
 import { application } from './application'
 import { registration } from './registration'
 export const en = {
+  ...userAccess,
   ...registration,
   ...application,
   ...corrections,

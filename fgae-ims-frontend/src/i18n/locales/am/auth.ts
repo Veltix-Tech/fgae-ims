@@ -1,3 +1,4 @@
+import { userAccess } from './user-access'
 import { portfolio } from './portfolio'
 import { participants } from './participants'
 import { managers } from './managers'
@@ -9,6 +10,7 @@ import { application } from './application'
 import type { TranslationKey } from '../en/auth'
 import { registration } from './registration'
 export const am: Record<TranslationKey, string> = {
+  ...userAccess,
   ...registration,
   ...application,
   ...corrections,

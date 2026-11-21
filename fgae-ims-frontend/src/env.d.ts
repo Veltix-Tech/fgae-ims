@@ -46,3 +46,5 @@ declare module '@participant-overview-adapter' {
 declare module '@portfolio-adapter' {
   export const portfolioService: import('./services/contracts/portfolio').PortfolioService
 }
+
+declare module '@user-access-adapter' { export const accessService: import('./services/contracts/user-access').AccessService }

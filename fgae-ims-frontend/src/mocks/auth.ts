@@ -1,4 +1,4 @@
-import { credentialRevision, findAccount, verifyCredential } from './credentials'
+import { credentialRevision, findAccount, verifyCredential, requiresPasswordChange } from './credentials'
 import { AuthError, type AuthService } from '../services/contracts/auth'
 
 const SESSION_KEY = 'fgae.synthetic.auth.v1'
@@ -33,7 +33,7 @@ export const authService: AuthService = {
     check(signal)
     try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ version: 1, email: account.email, expiresAt: Date.now() + TTL, credentialRevision: credentialRevision(account.email) })) }
     catch { throw new AuthError('STORAGE_UNAVAILABLE') }
-    return { ...structuredClone(account), mustChangePassword: account.mustChangePassword && credentialRevision(account.email) === 0 }
+    return { ...structuredClone(account), mustChangePassword: requiresPasswordChange(account) }
   },
   async restore(signal) {
     // Let an abandoned mount cancel before consuming the expired-session notice.
@@ -43,7 +43,7 @@ export const authService: AuthService = {
     if (!saved) return null
     if (saved.expiresAt <= Date.now() || (saved.credentialRevision ?? 0) !== credentialRevision(saved.email)) { sessionStorage.removeItem(SESSION_KEY); throw new AuthError('SESSION_EXPIRED') }
     const account = findAccount(saved.email)
-    return account ? { ...structuredClone(account), mustChangePassword: account.mustChangePassword && credentialRevision(account.email) === 0 } : null
+    return account ? { ...structuredClone(account), mustChangePassword: requiresPasswordChange(account) } : null
   },
   async signOut() {
     try { sessionStorage.removeItem(SESSION_KEY) } catch { throw new AuthError('STORAGE_UNAVAILABLE') }

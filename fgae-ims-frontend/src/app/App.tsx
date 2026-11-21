@@ -1,3 +1,4 @@
+import { UserAccess } from '../features/users/UserAccess'
 import { WorkspaceNavigation } from '../components/WorkspaceNavigation'
 import { PortfolioWorkspace } from '../features/workspaces/PortfolioWorkspace'
 import type { PortfolioKind } from '../services/contracts/portfolio'
@@ -19,21 +20,22 @@ import { ResetPassword } from '../features/auth/ResetPassword'
 import { FirstLogin } from '../features/auth/FirstLogin'
 import { Register } from '../features/auth/Register'
 
-export function App({ protectedEntry = false, page = 'sign-in', resetToken = '' }: { protectedEntry?: boolean; page?: 'sign-in' | 'recovery' | 'reset' | 'first' | 'register' | 'application' | 'corrections' | 'account' | 'overview' | 'hr' | ManagerKind | ParticipantKind | PortfolioKind; resetToken?: string }) {
+export function App({ protectedEntry = false, page = 'sign-in', resetToken = '', accessId }: { protectedEntry?: boolean; accessId?: string; page?: 'access-create' | 'access-detail' | 'access-edit' | 'sign-in' | 'recovery' | 'reset' | 'first' | 'register' | 'application' | 'corrections' | 'account' | 'overview' | 'hr' | ManagerKind | ParticipantKind | PortfolioKind; resetToken?: string }) {
   const { t } = useLocale()
+  const accessPage = page === 'access-create' || page === 'access-detail' || page === 'access-edit'
   const portfolioPage = page === 'project-manager' || page === 'member' || page === 'users'
   const participantPage = page === 'field-supervisor' || page === 'finance-officer' || page === 'volunteer'
   const managerPage = page === 'area-manager' || page === 'branch-manager' || page === 'volunteer-manager'
-  const headingId = portfolioPage ? 'portfolio-heading' : participantPage ? 'participant-heading' : managerPage ? 'manager-heading' : page === 'hr' ? 'hr-heading' : page === 'overview' ? 'overview-heading' : page === 'account' ? 'account-heading' : page === 'corrections' ? 'correction-heading' : page === 'application' ? 'application-heading' : page === 'register' ? 'register-heading' : page === 'first' ? 'first-heading' : page === 'reset' ? 'reset-heading' : page === 'recovery' ? 'recovery-heading' : 'sign-in-heading'
+  const headingId = accessPage ? 'access-heading' : portfolioPage ? 'portfolio-heading' : participantPage ? 'participant-heading' : managerPage ? 'manager-heading' : page === 'hr' ? 'hr-heading' : page === 'overview' ? 'overview-heading' : page === 'account' ? 'account-heading' : page === 'corrections' ? 'correction-heading' : page === 'application' ? 'application-heading' : page === 'register' ? 'register-heading' : page === 'first' ? 'first-heading' : page === 'reset' ? 'reset-heading' : page === 'recovery' ? 'recovery-heading' : 'sign-in-heading'
   return <>
-    <a className="skip-link" href={`#${headingId}`}>{t(portfolioPage || participantPage || managerPage ? 'mgrSkip' : page === 'hr' ? 'hrSkip' : page === 'overview' ? 'homeSkip' : page === 'account' ? 'acctSkip' : page === 'corrections' ? 'corrSkip' : page === 'application' ? 'appSkip' : page === 'register' ? 'regSkip' : page === 'first' ? 'firstSkip' : page === 'reset' ? 'resetSkip' : page === 'recovery' ? 'recoverySkip' : 'skip')}</a>
+    <a className="skip-link" href={`#${headingId}`}>{t(accessPage ? 'uaDetails' : portfolioPage || participantPage || managerPage ? 'mgrSkip' : page === 'hr' ? 'hrSkip' : page === 'overview' ? 'homeSkip' : page === 'account' ? 'acctSkip' : page === 'corrections' ? 'corrSkip' : page === 'application' ? 'appSkip' : page === 'register' ? 'regSkip' : page === 'first' ? 'firstSkip' : page === 'reset' ? 'resetSkip' : page === 'recovery' ? 'recoverySkip' : 'skip')}</a>
     <header className="site-header motion-enter">
       <div className="brand"><img src="/brand/mark.svg" width="46" height="46" alt="" /><div><span className="wordmark">FGAE<span className="wordmark-divider">/</span><span className="ims">IMS</span></span><p>{t('organization')}</p></div></div>
       <LanguageSelector />
     </header>
-    <main className={portfolioPage || participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'application' || page === 'corrections' || page === 'account' ? `application-layout${portfolioPage || participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'account' || page === 'application' || page === 'corrections' ? ' workspace-shell' : ''}` : 'auth-layout'}>
-      {(portfolioPage || participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'account' || page === 'application' || page === 'corrections') && <WorkspaceNavigation />}
-      {portfolioPage ? <PortfolioWorkspace key={page} kind={page} /> : participantPage ? <ParticipantOverview key={page} kind={page} /> : managerPage ? <ManagerOverview key={page} kind={page} /> : page === 'hr' ? <HrOverview /> : page === 'overview' ? <SuperAdmin /> : page === 'account' ? <Account /> : page === 'corrections' ? <CorrectApplication /> : page === 'application' ? <MyApplication /> : <>
+    <main className={accessPage || portfolioPage || participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'application' || page === 'corrections' || page === 'account' ? `application-layout${accessPage || portfolioPage || participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'account' || page === 'application' || page === 'corrections' ? ' workspace-shell' : ''}` : 'auth-layout'}>
+      {(accessPage || portfolioPage || participantPage || managerPage || page === 'hr' || page === 'overview' || page === 'account' || page === 'application' || page === 'corrections') && <WorkspaceNavigation />}
+      {accessPage ? <UserAccess key={`${page}:${accessId}`} mode={page === 'access-create' ? 'create' : page === 'access-edit' ? 'edit' : 'detail'} userId={accessId} /> : portfolioPage ? <PortfolioWorkspace key={page} kind={page} /> : participantPage ? <ParticipantOverview key={page} kind={page} /> : managerPage ? <ManagerOverview key={page} kind={page} /> : page === 'hr' ? <HrOverview /> : page === 'overview' ? <SuperAdmin /> : page === 'account' ? <Account /> : page === 'corrections' ? <CorrectApplication /> : page === 'application' ? <MyApplication /> : <>
       <section className="welcome-panel motion-enter" aria-labelledby="welcome-heading">
         <p className="eyebrow">{t('eyebrow')}</p>
         <h2 id="welcome-heading">{t('headline')}</h2>

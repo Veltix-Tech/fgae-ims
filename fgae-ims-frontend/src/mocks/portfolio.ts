@@ -2,7 +2,7 @@ import { authService } from './auth'
 import { accounts } from './identities'
 import { allocations, assignments, attendance, workLocations } from './operations'
 import { allowanceRecords, budgetRecords } from './participant-records'
-import { findAccount, readProfile, readRegisteredIdentities } from './credentials'
+import { findAccount, readProfile, readRegisteredIdentities, applyAccessDirectory } from './credentials'
 import { canReadPortfolio, canReadProject, canReadMembership, mapPortfolio, type PortfolioService, type ProjectRow, type MembershipRow, type DirectoryUser } from '../services/contracts/portfolio'
 import { ManagerError } from '../services/contracts/manager-overview'
 export function projectSummaries(): ProjectRow[] {
@@ -32,7 +32,7 @@ export function directoryUsers(): DirectoryUser[] {
     for (const grant of identity.grants) if (!row.grants.some(item => item.role === grant.role && item.scope.kind === grant.scope.kind && item.scope.id === grant.scope.id)) row.grants.push({ ...grant, scopeName: workLocations.find(item => item.id === grant.scope.id)?.name ?? (grant.scope.kind === 'project' ? 'Demo community outreach project' : grant.scope.kind === 'self' || grant.scope.kind === 'supervision' ? profile.name : '*') })
     unique.set(identity.id, row)
   }
-  return [...unique.values(), { id: 'synthetic-suspended-user', name: 'Demo suspended account', email: 'suspended@example.test', state: 'SUSPENDED', mustChangePassword: false, grants: [] }, { id: 'synthetic-inactive-user', name: 'Demo inactive account', email: 'inactive@example.test', state: 'INACTIVE', mustChangePassword: false, grants: [] }]
+  return applyAccessDirectory([...unique.values(), { id: 'synthetic-suspended-user', name: 'Demo suspended account', email: 'suspended@example.test', state: 'SUSPENDED', mustChangePassword: false, grants: [] }, { id: 'synthetic-inactive-user', name: 'Demo inactive account', email: 'inactive@example.test', state: 'INACTIVE', mustChangePassword: false, grants: [] }])
 }
 export const portfolioService: PortfolioService = {
   async load(kind, signal) {
