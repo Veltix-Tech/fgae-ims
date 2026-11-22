@@ -48,3 +48,5 @@ declare module '@portfolio-adapter' {
 }
 
 declare module '@user-access-adapter' { export const accessService: import('./services/contracts/user-access').AccessService }
+
+declare module '@areas-adapter' { export const areaService: import('./services/contracts/areas').AreaService }

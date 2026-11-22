@@ -1,3 +1,4 @@
+import { canReadAreas } from '../services/contracts/areas'
 import { canReadOwnApplication } from '../services/contracts/application'
 import { useEffect, useRef, useState } from 'react'
 import { ListIcon, XIcon } from '@phosphor-icons/react'
@@ -57,9 +58,9 @@ export function WorkspaceNavigation() {
   managerKinds.filter(kind => canReadManager(identity, kind)).forEach(kind => overview.push({ href: `/workspaces/${kind}`, label: kind === 'area-manager' ? 'areaLink' : kind === 'branch-manager' ? 'branchLink' : 'vmLink' }))
   participantKinds.filter(kind => canReadParticipant(identity, kind)).forEach(kind => overview.push({ href: `/workspaces/${kind}`, label: kind === 'field-supervisor' ? 'supervisorLink' : kind === 'finance-officer' ? 'financeLink' : 'volunteerLink' }))
   portfolioKinds.filter(kind => kind !== 'users' && canReadPortfolio(identity, kind)).forEach(kind => overview.push({ href: portfolioPath(kind), label: kind === 'project-manager' ? 'projectLink' : 'memberLink' }))
-  const links = (items: typeof overview) => items.map(item => <a key={item.href} href={item.href} aria-label={`${t('navGoTo')}: ${t(item.label)}`} aria-current={location.pathname === item.href ? 'page' : undefined}>{t(item.label)}</a>)
+  const links = (items: typeof overview) => items.map(item => <a key={item.href} href={item.href} aria-label={`${t('navGoTo')}: ${t(item.label)}`} aria-current={(location.pathname === item.href || item.href === '/areas' && location.pathname.startsWith('/areas/') || item.href === '/users' && location.pathname.startsWith('/users/')) ? 'page' : undefined}>{t(item.label)}</a>)
   const groups = <>
-    {canReadPortfolio(identity, 'users') && <Accordion id="nav-administration" label={t('navAdministration')} initialOpen>{links([{ href: '/users', label: 'usersLink' }])}</Accordion>}
+    {(canReadPortfolio(identity, 'users') || canReadAreas(identity)) && <Accordion id="nav-administration" label={t('navAdministration')} initialOpen>{links([...(canReadPortfolio(identity,'users') ? [{ href: '/users', label: 'usersLink' as const }] : []), ...(canReadAreas(identity) ? [{ href: '/areas', label: 'orgAreas' as const }] : [])])}</Accordion>}
     {overview.length > 0 && <Accordion id="nav-workspaces" label={t('navWorkspaces')} initialOpen>{links(overview)}</Accordion>}
     {canManageAccount(identity) && <Accordion id="nav-account" label={t('acctLink')}>{links([{ href: '/account', label: 'acctLink' }, ...(canReadOwnApplication(identity) ? [{ href: '/my-application', label: 'appLink' as const }] : []), { href: '/sign-in', label: 'navAllWorkspaces' }])}</Accordion>}
   </>

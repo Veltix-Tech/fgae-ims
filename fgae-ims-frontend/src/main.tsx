@@ -1,3 +1,4 @@
+import './styles/areas.css'
 import './styles/user-access.css'
 import { portfolioKinds, portfolioPath } from './services/contracts/portfolio'
 import './styles/portfolio.css'
@@ -29,11 +30,15 @@ const accessRoute = /^\/users\/([^/]+)(\/edit)?$/.exec(window.location.pathname)
 let accessId: string | undefined
 if (accessRoute && accessRoute[1] !== 'new') { try { accessId = decodeURIComponent(accessRoute[1]!) } catch { accessId = 'invalid-path' } }
 const accessPage = accessRoute ? accessRoute[1] === 'new' ? 'access-create' : accessRoute[2] ? 'access-edit' : 'access-detail' : undefined
-const page = accessPage ?? portfolioPage ?? participantPage ?? managerPage ?? (window.location.pathname === '/workspaces/hr' ? 'hr' : window.location.pathname === '/workspaces/super-admin' ? 'overview' : window.location.pathname === '/account' ? 'account' : window.location.pathname === '/my-application/edit' ? 'corrections' : window.location.pathname === '/my-application' ? 'application' : window.location.pathname === '/register' ? 'register' : window.location.pathname === '/first-login' ? 'first' : window.location.pathname === '/reset-password' ? 'reset' : window.location.pathname === '/forgot-password' ? 'recovery' : 'sign-in')
-const protectedEntry = !accessPage && !portfolioPage && !participantPage && !managerPage && !['/', '/sign-in', '/forgot-password', '/reset-password', '/first-login', '/register', '/my-application', '/my-application/edit', '/account', '/workspaces/super-admin', '/workspaces/hr'].includes(window.location.pathname)
+const areaRoute = /^\/areas(?:\/([^/]+))?$/.exec(window.location.pathname)
+let areaId: string | undefined
+if (areaRoute?.[1] && areaRoute[1] !== 'new') { try { areaId = decodeURIComponent(areaRoute[1]) } catch { areaId = 'invalid-path' } }
+const areaPage = areaRoute ? !areaRoute[1] ? 'areas-list' : areaRoute[1] === 'new' ? 'areas-create' : 'areas-detail' : undefined
+const page = areaPage ?? accessPage ?? portfolioPage ?? participantPage ?? managerPage ?? (window.location.pathname === '/workspaces/hr' ? 'hr' : window.location.pathname === '/workspaces/super-admin' ? 'overview' : window.location.pathname === '/account' ? 'account' : window.location.pathname === '/my-application/edit' ? 'corrections' : window.location.pathname === '/my-application' ? 'application' : window.location.pathname === '/register' ? 'register' : window.location.pathname === '/first-login' ? 'first' : window.location.pathname === '/reset-password' ? 'reset' : window.location.pathname === '/forgot-password' ? 'recovery' : 'sign-in')
+const protectedEntry = !areaPage && !accessPage && !portfolioPage && !participantPage && !managerPage && !['/', '/sign-in', '/forgot-password', '/reset-password', '/first-login', '/register', '/my-application', '/my-application/edit', '/account', '/workspaces/super-admin', '/workspaces/hr'].includes(window.location.pathname)
 // C-AUTH-06: the email link carries a fragment token, consumed into memory and removed from history.
 const resetTokens = page === 'reset' ? new URLSearchParams(window.location.hash.slice(1)).getAll('token') : []
 const resetToken = resetTokens.length === 1 && resetTokens[0]!.length <= 2048 ? resetTokens[0]! : ''
 if (page === 'reset') history.replaceState(null, '', '/reset-password')
 if (page === 'sign-in' && window.location.pathname !== '/sign-in') history.replaceState(null, '', '/sign-in')
-createRoot(document.getElementById('root')!).render(<StrictMode><LocaleProvider><App accessId={accessId} page={page} protectedEntry={protectedEntry} resetToken={resetToken} /></LocaleProvider></StrictMode>)
+createRoot(document.getElementById('root')!).render(<StrictMode><LocaleProvider><App areaId={areaId} accessId={accessId} page={page} protectedEntry={protectedEntry} resetToken={resetToken} /></LocaleProvider></StrictMode>)

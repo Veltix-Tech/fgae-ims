@@ -1,3 +1,4 @@
+import { storedAreas } from './areas'
 import { authService } from './auth'
 import { directoryUsers } from './portfolio'
 import { accessRecord, mutateAccess } from './credentials'
@@ -6,6 +7,7 @@ import { AccessError, canAdminUsers, mapAccessContext, mapAccessResult, type Acc
 async function guard(signal?: AbortSignal) { const identity = await authService.restore(signal); if (!identity) throw new AccessError('SESSION_EXPIRED'); if (!canAdminUsers(identity)) throw new AccessError('FORBIDDEN'); return identity }
 export function accessScopes(id = '@self'): AccessScope[] {
   return [{ kind: 'global', id: '*', name: 'Organization-wide', roles: ['SUPER_ADMIN','HR','FINANCE_OFFICER'] },
+    ...storedAreas().filter(a => a.state === 'ACTIVE').map(a => ({ kind: 'area' as const, id: a.id, name: a.name, roles: ['AREA_MANAGER','HR','VOLUNTEER_MANAGER','FINANCE_OFFICER'] as AccessScope['roles'] })),
     ...workLocations.map(row => ({ kind: row.kind, id: row.id, name: row.name, roles: (row.kind === 'area' ? ['AREA_MANAGER','HR','VOLUNTEER_MANAGER','FINANCE_OFFICER'] : ['BRANCH_MANAGER','HR','VOLUNTEER_MANAGER','FINANCE_OFFICER']) as AccessScope['roles'] })),
     { kind: 'project', id: 'fictional-project-a', name: 'Demo community outreach project', roles: ['PROJECT_MANAGER','FINANCE_OFFICER'] }, { kind: 'project', id: 'fictional-project-b', name: 'Outside project', roles: ['PROJECT_MANAGER','FINANCE_OFFICER'] },
     { kind: 'self', id, name: 'Own records', roles: ['VOLUNTEER','MEMBER'] }, { kind: 'supervision', id, name: 'Own supervision', roles: ['FIELD_SUPERVISOR'] }]

@@ -1,0 +1,17 @@
+.areas-page { min-width: 0; }
+.area-list { list-style: none; margin: 0; padding: 0; }
+.area-list > li { display: grid; grid-template-columns: minmax(0, 2fr) minmax(90px, 1fr) minmax(0, 1fr); gap: 18px; align-items: center; border-bottom: 1px solid var(--divider); padding: 22px 0; overflow-wrap: anywhere; }
+.area-list h3, .area-list p { margin: 4px 0; }
+.area-list p { color: var(--muted); font-size: 13px; }
+.area-result-heading { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 24px 0 8px; }
+.area-result-heading button { width: auto; margin-left: auto; }
+.area-description { grid-column: 1 / -1; white-space: pre-wrap; overflow-wrap: anywhere; }
+.area-branches { list-style: none; padding: 0; }
+.area-branches li { display: flex; gap: 20px; justify-content: space-between; border-bottom: 1px solid var(--divider); padding: 18px 0; overflow-wrap: anywhere; }
+.area-confirm { display: flex; gap: 12px; align-items: start; margin: 24px 0; }
+.area-confirm input { width: 20px; height: 20px; flex-shrink: 0; }
+.areas-page textarea { width: 100%; min-height: 100px; resize: vertical; border: 1px solid var(--control-border); border-radius: var(--radius); padding: 12px; color: var(--ink); background: var(--surface); font: inherit; }
+@media (max-width: 700px) { .area-list > li { grid-template-columns: minmax(0,1fr) auto; gap: 10px; } .area-list > li > p { grid-column: 1 / -1; } }
+
+.areas-page .manager-section { margin-top: 24px; }
+.areas-page .field-help { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 8px 0 0; }
