@@ -201,3 +201,8 @@ AREA-01/02/03 implement the Areas list (`/areas`), Create Area (`/areas/new`) an
 Area, Branch and Volunteer Managers have scoped read-only access. Branch Managers see their permitted branch and its parent area, not sibling branches. Creation does not move branches or grant roles. New active areas are available in account role/scope selectors. Area editing and archiving are the following planned page; this batch preserves relationships and explains the impact requirement without implementing those actions early.
 
 English/Amharic, five responsive widths, accessible accordion selectors, desktop/mobile navigation, ripple/reduced-motion behavior, dirty-form protection, session clearing, duplicate detection and idempotent retry handling are included. Live GET/POST `/areas` contracts are proposed; backend implementation and fluent Amharic review remain pending. The user-approved USER-02/03/04 batch was pushed as `817c1b7`.
+
+
+## Directory layout consistency
+
+Management directories reuse `DirectoryToolbar`: one primary Create action beside the directory heading, directly above filters and records, stacked below the heading on mobile. Areas uses a single directory surface with aligned name/code, status and scoped branch-count rows, explicit column labels on desktop and stacked records on mobile. Create Account uses the same toolbar in the account directory. Preserve the documented UI plan and shared patterns when adding future pages.
