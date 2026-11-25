@@ -1,12 +1,12 @@
 import type { AllowanceSummary, AssignmentSummary, AttendanceSummary, BudgetSummary, PaymentSummary } from '../services/contracts/participant-overview'
-import { allocations, assignments, attendance, workLocations } from './operations'
+import { allocations, assignments, attendance, readWorkLocations } from './operations'
 import { accounts } from './identities'
 const placement = { branchId: 'fictional-branch-a', areaId: 'fictional-area-a', projectId: 'fictional-project-a' }
 export function participantAssignments(): AssignmentSummary[] {
   return assignments.map(row => {
     const work = allocations.find(item => item.id === row.workId)!
     const endAt = work.dueAt
-    return { ...placement, id: row.id, title: work.title, place: workLocations.find(item => item.id === work.branchId)!.name, volunteerId: row.volunteerId, volunteerName: accounts.find(person => person.id === row.volunteerId)!.name, supervisorId: row.supervisorId,
+    return { ...placement, id: row.id, title: work.title, place: readWorkLocations().find(item => item.id === work.branchId)!.name, volunteerId: row.volunteerId, volunteerName: accounts.find(person => person.id === row.volunteerId)!.name, supervisorId: row.supervisorId,
       startAt: work.state === 'COMPLETED' ? endAt.replace('14:00:00', '06:00:00') : '2026-11-17T06:00:00Z', endAt, state: work.state === 'COMPLETED' ? 'ENDED' : 'ACTIVE' }
   })
 }

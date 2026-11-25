@@ -1,3 +1,4 @@
+import { organization as organizationCopy } from './organization'
 import { areas } from './areas'
 import { userAccess } from './user-access'
 import { portfolio } from './portfolio'
@@ -11,6 +12,7 @@ import { application } from './application'
 import type { TranslationKey } from '../en/auth'
 import { registration } from './registration'
 export const am: Record<TranslationKey, string> = {
+  ...organizationCopy,
   ...areas,
   ...userAccess,
   ...registration,

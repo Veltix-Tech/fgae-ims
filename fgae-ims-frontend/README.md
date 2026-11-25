@@ -206,3 +206,12 @@ English/Amharic, five responsive widths, accessible accordion selectors, desktop
 ## Directory layout consistency
 
 Management directories reuse `DirectoryToolbar`: one primary Create action beside the directory heading, directly above filters and records, stacked below the heading on mobile. Areas uses a single directory surface with aligned name/code, status and scoped branch-count rows, explicit column labels on desktop and stacked records on mobile. Create Account uses the same toolbar in the account directory. Preserve the documented UI plan and shared patterns when adding future pages.
+
+
+## Area maintenance and branch review batch
+
+AREA-04, BRANCH-01 and BRANCH-02 add Edit Area (`/areas/{id}/edit`), Branches (`/branches`) and Create Branch (`/branches/new`). Open an area's details and choose **Edit area**, or open **Branches** under Administration. The Branches directory reuses the approved toolbar and row layout, with search, status/parent-area accordion filters and eight-row pagination. Only Super Admin can edit/create; managers see permitted branches and parent areas.
+
+Area changes require a reason and before/after confirmation. The edit page shows archive dependencies, protects against stale versions, preserves history and supports archive/restore for eligible areas. Active linked branches, unfinished work or active accounts with direct area grants block archiving; the service checks again at save. Creating a branch requires an active parent area and preserves all existing relationships. New active branches become available in account scopes and volunteer registration choices. Mutations include duplicate detection and idempotent retries.
+
+Both languages, five screen widths, shared navigation/animations, reduced motion, accessibility, dirty-form guards and session clearing apply. Backend contracts and archive policy remain proposed; real integration and fluent Amharic review are pending. Branch detail/edit remain the next batch. The approved area and directory-layout changes were pushed as `82a9cdb`.

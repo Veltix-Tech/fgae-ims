@@ -1,3 +1,4 @@
+import { organizationAreas, organizationBranches } from './organization-store'
 import { RegistrationError, validateDocument, validateRegistration, validRegistrationDraft, type RegistrationConfig, type RegistrationDocument, type RegistrationDraft, type RegistrationService } from '../services/contracts/registration'
 import { registerApplicant } from './credentials'
 import { readRegistrationItem, updateDraft, writeRegistrationItem } from './registration-store'
@@ -5,7 +6,7 @@ import { registrationReceiptStore } from '../services/adapters/registration-rece
 const receipts = registrationReceiptStore('fgae.synthetic.registration.receipt.v1')
 export const registrationConfig: RegistrationConfig = {
   version: 'synthetic-registration-1', requiredFields: ['fullName', 'email', 'phone', 'birthDate', 'gender', 'branchId'],
-  branches: [{ id: 'fictional-branch-a', name: 'Demo branch A' }, { id: 'fictional-branch-b', name: 'Demo branch B' }],
+  get branches() { return organizationBranches().filter(b=>b.state==='ACTIVE'&&organizationAreas().some(a=>a.id===b.areaId&&a.state==='ACTIVE')).map(b=>({id:b.id,name:b.name})) },
   documents: [{ id: 'identity', label: { en: 'Identity document', am: 'የማንነት ማረጋገጫ' }, required: true, types: ['application/pdf', 'image/jpeg', 'image/png'], maxBytes: 5 * 1024 * 1024 }],
 }
 function check(signal?: AbortSignal) { signal?.throwIfAborted(); if (!navigator.onLine) throw new RegistrationError('NETWORK') }

@@ -138,9 +138,10 @@ export class AuthClient {
     if (generation !== this.generation) throw new OverviewError('SESSION_EXPIRED')
     return result
   }
-  async areas(input?: AreaInput, signal?: AbortSignal) {
+  async areas(input?: AreaInput, signal?: AbortSignal) { return this.organization('/areas', input ? 'POST' : 'GET', input, signal) }
+  async organization(path: string, method: string, input?: { idempotencyKey: string }, signal?: AbortSignal) {
     const generation = this.generation
-    const send = () => this.request('/areas', input ? 'POST' : 'GET', input, signal, input ? { 'Idempotency-Key': input.idempotencyKey } : undefined)
+    const send = () => this.request(path, method, input, signal, input ? { 'Idempotency-Key': input.idempotencyKey } : undefined)
     let response = await send()
     if (response.status === 401) { await this.refresh(); response = await send() }
     signal?.throwIfAborted()
@@ -148,7 +149,7 @@ export class AuthClient {
     if (!response.ok) {
       let code: unknown; try { code = (await response.json()).code } catch { /* HTTP fallback below. */ }
       if (areaCodes.includes(code as typeof areaCodes[number])) throw new AreaError(code as typeof areaCodes[number])
-      throw new AreaError(response.status === 401 ? 'SESSION_EXPIRED' : response.status === 403 ? 'FORBIDDEN' : response.status === 409 ? 'CONFLICT' : response.status === 429 ? 'RATE_LIMITED' : 'UNAVAILABLE')
+      throw new AreaError(response.status === 401 ? 'SESSION_EXPIRED' : response.status === 403 ? 'FORBIDDEN' : response.status === 404 ? 'NOT_FOUND' : response.status === 409 ? 'CONFLICT' : response.status === 429 ? 'RATE_LIMITED' : 'UNAVAILABLE')
     }
     const result = await this.parse(response)
     signal?.throwIfAborted(); if (generation !== this.generation) throw new AreaError('SESSION_EXPIRED')

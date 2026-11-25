@@ -1,14 +1,11 @@
+import { baseLocations } from './organization-store'
 import type { WorkLocation, WorkRow, VolunteerRow } from '../services/contracts/manager-overview'
 import { accounts } from './identities'
 import { readRegisteredIdentities } from './credentials'
 import { readApplication } from './application'
 // Related fictional activity, allocation, assignment and attendance records, not UI counters.
-export const workLocations: WorkLocation[] = [
-  { id: 'fictional-area-a', areaId: 'fictional-area-a', kind: 'area', name: 'Demo area A' },
-  { id: 'fictional-area-b', areaId: 'fictional-area-b', kind: 'area', name: 'Demo area B' },
-  { id: 'fictional-branch-a', areaId: 'fictional-area-a', kind: 'branch', name: 'Demo branch A' },
-  { id: 'fictional-branch-b', areaId: 'fictional-area-b', kind: 'branch', name: 'Demo branch B' },
-]
+export { readWorkLocations } from './organization-store'
+export const workLocations: WorkLocation[] = baseLocations
 export const allocations = [
   { id: 'synthetic-work-outreach', title: 'Community outreach', areaId: 'fictional-area-a', branchId: 'fictional-branch-a', state: 'ACTIVE' as const, dueAt: '2026-11-25T14:00:00Z', target: 3 },
   { id: 'synthetic-work-education', title: 'Youth education session', areaId: 'fictional-area-a', branchId: 'fictional-branch-a', state: 'PLANNED' as const, dueAt: '2026-11-28T14:00:00Z', target: 2 },

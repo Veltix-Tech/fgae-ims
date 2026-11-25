@@ -1,0 +1,8 @@
+import {authService,client} from './live-auth'
+import {AreaError,canReadAreas,canCreateArea} from '../contracts/areas'
+import {mapBranches,validateBranch,type BranchService} from '../contracts/branches'
+async function guard(signal?:AbortSignal){const i=await authService.restore(signal);if(!i)throw new AreaError('SESSION_EXPIRED');if(!canReadAreas(i))throw new AreaError('FORBIDDEN');return i}
+export const branchService:BranchService={
+ async load(signal){const identity=await guard(signal);return {identity,snapshot:mapBranches(await client.organization('/branches','GET',undefined,signal),identity)}},
+ async create(input,signal){const identity=await guard(signal);if(!canCreateArea(identity))throw new AreaError('FORBIDDEN');const next=validateBranch(input);const data=await client.organization('/branches','POST',next,signal);const snapshot=mapBranches(data.snapshot,identity);const b=snapshot.branches.find(b=>b.id===data.id);if(!b||b.areaId!==next.areaId||b.name!==next.name||b.code!==next.code||b.description!==next.description||b.state!=='ACTIVE'||b.version!==1||b.history.length!==1||b.history[0]?.actorId!==identity.id||b.history[0]?.reason!==next.reason||!snapshot.areas.some(a=>a.id===b.areaId&&a.state==='ACTIVE'))throw new AreaError('INVALID_RESPONSE');return {identity,snapshot,id:b.id}}
+}

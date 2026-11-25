@@ -1,3 +1,4 @@
+import { organization as organizationCopy } from './organization'
 import { areas } from './areas'
 import { userAccess } from './user-access'
 import { portfolio } from './portfolio'
@@ -10,6 +11,7 @@ import { corrections } from './corrections'
 import { application } from './application'
 import { registration } from './registration'
 export const en = {
+  ...organizationCopy,
   ...areas,
   ...userAccess,
   ...registration,

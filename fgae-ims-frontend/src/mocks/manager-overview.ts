@@ -1,12 +1,12 @@
 import { authService } from './auth'
-import { workLocations, readWorkRows, readVolunteerSummaries, readApplicationSummaries } from './operations'
+import { readWorkLocations, readWorkRows, readVolunteerSummaries, readApplicationSummaries } from './operations'
 import { canReadManager, canReadLocation, ManagerError, mapManagerOverview, type ManagerOverviewService } from '../services/contracts/manager-overview'
 export const managerOverviewService: ManagerOverviewService = {
   async load(kind, signal) {
     const identity = await authService.restore(signal)
     if (!identity) throw new ManagerError('SESSION_EXPIRED')
     if (!canReadManager(identity, kind)) throw new ManagerError('FORBIDDEN')
-    const locations = workLocations.filter(location => canReadLocation(identity, kind, location))
+    const locations = readWorkLocations().filter(location => canReadLocation(identity, kind, location))
     const scoped = (locationId: string) => locations.some(location => location.id === locationId)
     const work = readWorkRows(kind === 'area-manager' ? 'area' : 'branch').filter(row => scoped(row.locationId))
     const volunteers = readVolunteerSummaries().filter(row => scoped(row.locationId))

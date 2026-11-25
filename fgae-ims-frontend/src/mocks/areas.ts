@@ -1,27 +1,22 @@
 import { authService } from './auth'
-import { workLocations } from './operations'
-import { AreaError, canCreateArea, canReadAreas, canReadArea, canReadAreaBranch, mapAreas, validateArea, type Area, type AreaBranch, type AreaInput, type AreaService } from '../services/contracts/areas'
-const STORE = 'fgae.synthetic.areas.v1'
-interface Store { areas: Area[]; receipts: Record<string, { actor: string; payload: string; id: string }> }
-export function storedAreas(): Area[] { return read().areas }
-function read(): Store { try { const raw = localStorage.getItem(STORE); if (!raw) return { areas: [], receipts: {} }; const data = JSON.parse(raw) as Store; if (!Array.isArray(data.areas) || !data.receipts || typeof data.receipts !== 'object') throw new Error(); return data } catch { throw new AreaError('STORAGE_UNAVAILABLE') } }
-const branches: AreaBranch[] = workLocations.filter(l => l.kind === 'branch').map(l => ({ id: l.id, areaId: l.areaId, name: l.name, state: 'ACTIVE' }))
-const seeds: Area[] = workLocations.filter(l => l.kind === 'area').map((l,index) => ({ id: l.id, name: l.name, code: `DEMO-${index + 1}`, description: '', state: 'ACTIVE', version: 1, createdAt: '2026-11-09T09:00:00Z', history: [] }))
-async function guard(signal?: AbortSignal) { const i = await authService.restore(signal); signal?.throwIfAborted(); if (!i) throw new AreaError('SESSION_EXPIRED'); if (!canReadAreas(i)) throw new AreaError('FORBIDDEN'); return i }
-let queue = Promise.resolve()
-function locked<T>(fn: () => Promise<T>) { if (navigator.locks) return navigator.locks.request(STORE, fn); const next = queue.then(fn,fn); queue = next.then(() => undefined, () => undefined); return next }
-export const areaService: AreaService = {
-  async load(signal) { const identity = await guard(signal); const visibleBranches = branches.filter(b => canReadAreaBranch(identity,b)); return { identity, snapshot: mapAreas({ ownerId: identity.id, areas: [...seeds,...read().areas].filter(a => canReadArea(identity,a.id,visibleBranches)), branches: visibleBranches }, identity) } },
-  async create(input: AreaInput, signal) { return locked(async () => {
-    const identity = await guard(signal); if (!canCreateArea(identity)) throw new AreaError('FORBIDDEN')
-    const data = read(); const next = validateArea(input); const payload = JSON.stringify(next); const receipt = data.receipts[next.idempotencyKey]
-    if (receipt) { if (receipt.actor !== identity.id || receipt.payload !== payload) throw new AreaError('CONFLICT'); return { ...await areaService.load(signal), id: receipt.id } }
-    if ([...seeds,...data.areas].some(a => a.code === next.code || a.name.toLocaleLowerCase() === next.name.toLocaleLowerCase())) throw new AreaError('DUPLICATE')
-    const id = `synthetic-area-${crypto.randomUUID()}`; const at = new Date().toISOString()
-    const area: Area = { id, code: next.code, name: next.name, description: next.description, state: 'ACTIVE', version: 1, createdAt: at, history: [{ id: crypto.randomUUID(), actorId: identity.id, actor: identity.name, at, reason: next.reason, action: 'CREATE' }] }
-    const current = await guard(signal); if (current.id !== identity.id || !canCreateArea(current)) throw new AreaError('FORBIDDEN')
-    data.areas.push(area); data.receipts[next.idempotencyKey] = { actor: identity.id, payload, id }
-    signal?.throwIfAborted(); try { localStorage.setItem(STORE, JSON.stringify(data)) } catch { throw new AreaError('STORAGE_UNAVAILABLE') }
-    return { ...await areaService.load(signal), id }
-  }) },
+import { allocations } from './operations'
+import { directoryUsers } from './portfolio'
+import { organizationAreas, organizationBranches, readOrganization, writeOrganization, lockedOrganization } from './organization-store'
+import { AreaError, canCreateArea, canReadAreas, canReadArea, canReadAreaBranch, mapAreas, validateArea, validateAreaEdit, type Area, type AreaValues, type AreaImpact, type AreaService } from '../services/contracts/areas'
+export function storedAreas():Area[] {return organizationAreas()}
+async function guard(signal?:AbortSignal) {const i = await authService.restore(signal);signal?.throwIfAborted();if(!i)throw new AreaError('SESSION_EXPIRED');if(!canReadAreas(i))throw new AreaError('FORBIDDEN');return i}
+function impactFor(id:string,ownerId:string):AreaImpact { const a = organizationAreas().find(a=>a.id===id);if(!a)throw new AreaError('NOT_FOUND');const branches=organizationBranches().filter(b=>b.areaId===id);return {ownerId,areaId:id,version:a.version,branches:branches.length,activeBranches:branches.filter(b=>b.state==='ACTIVE').length,activeWork:allocations.filter(w=>w.areaId===id&&!['COMPLETED','CANCELLED'].includes(w.state)).length,assignedAccounts:directoryUsers().filter(u=>u.state==='ACTIVE'&&u.grants.some(g=>g.scope.kind==='area'&&g.scope.id===id)).length} }
+const values = (a:Area):AreaValues => ({code:a.code,name:a.name,description:a.description,state:a.state})
+export const areaService:AreaService = {
+ async load(signal) {const identity=await guard(signal);const branches=organizationBranches().filter(b=>canReadAreaBranch(identity,b));return {identity,snapshot:mapAreas({ownerId:identity.id,areas:organizationAreas().filter(a=>canReadArea(identity,a.id,branches)),branches},identity)}},
+ async impact(id,signal) {const identity=await guard(signal);if(!canCreateArea(identity))throw new AreaError('FORBIDDEN');return impactFor(id,identity.id)},
+ async create(input,signal) {return lockedOrganization(async()=>{
+ const identity=await guard(signal);if(!canCreateArea(identity))throw new AreaError('FORBIDDEN');const data=readOrganization();const next=validateArea(input);const payload=JSON.stringify(next);const receipt=data.receipts[next.idempotencyKey];if(receipt){if(receipt.actor!==identity.id||receipt.payload!==payload)throw new AreaError('CONFLICT');return receipt.snapshot?{identity,snapshot:mapAreas(receipt.snapshot,identity),id:receipt.id}:{...await areaService.load(signal),id:receipt.id}}
+ if(organizationAreas(data).some(a=>a.code===next.code||a.name.toLocaleLowerCase()===next.name.toLocaleLowerCase()))throw new AreaError('DUPLICATE');const id=`synthetic-area-${crypto.randomUUID()}`;const at=new Date().toISOString();const area:Area={id,code:next.code,name:next.name,description:next.description,state:'ACTIVE',version:1,createdAt:at,history:[{id:crypto.randomUUID(),actorId:identity.id,actor:identity.name,at,reason:next.reason,action:'CREATE'}]};const current=await guard(signal);if(current.id!==identity.id||!canCreateArea(current))throw new AreaError('FORBIDDEN');data.areas.push(area);data.receipts[next.idempotencyKey]={actor:identity.id,payload,id,snapshot:mapAreas({ownerId:identity.id,areas:organizationAreas(data),branches:organizationBranches(data)},identity)};signal?.throwIfAborted();writeOrganization(data);return {...await areaService.load(signal),id}
+ })},
+ async update(input,signal) {return lockedOrganization(async()=>{
+ const identity=await guard(signal);if(!canCreateArea(identity))throw new AreaError('FORBIDDEN');const next=validateAreaEdit(input);const data=readOrganization();const payload=JSON.stringify(next);const receipt=data.receipts[next.idempotencyKey];if(receipt){if(receipt.actor!==identity.id||receipt.payload!==payload)throw new AreaError('CONFLICT');return receipt.snapshot?{identity,snapshot:mapAreas(receipt.snapshot,identity),id:receipt.id}:{...await areaService.load(signal),id:receipt.id}}
+ const all=organizationAreas(data);const old=all.find(a=>a.id===next.id);if(!old)throw new AreaError('NOT_FOUND');if(old.version!==next.version)throw new AreaError('CONFLICT');if(all.some(a=>a.id!==old.id&&(a.code===next.code||a.name.toLocaleLowerCase()===next.name.toLocaleLowerCase())))throw new AreaError('DUPLICATE');const impact=impactFor(old.id,identity.id);if(next.state==='ARCHIVED'&&old.state!=='ARCHIVED'&&(impact.activeBranches||impact.activeWork||impact.assignedAccounts))throw new AreaError('IMPACT_BLOCKED');
+ const after:AreaValues={name:next.name,code:next.code,description:next.description,state:next.state};const updated:Area={...old,...after,version:old.version+1,history:[...old.history,{id:crypto.randomUUID(),actorId:identity.id,actor:identity.name,at:new Date().toISOString(),reason:next.reason,action:old.state===next.state?'UPDATE':next.state==='ARCHIVED'?'ARCHIVE':'RESTORE',before:values(old),after}]};const current=await guard(signal);if(current.id!==identity.id||!canCreateArea(current))throw new AreaError('FORBIDDEN');data.areas=[...data.areas.filter(a=>a.id!==old.id),updated];data.receipts[next.idempotencyKey]={actor:identity.id,payload,id:old.id,snapshot:mapAreas({ownerId:identity.id,areas:organizationAreas(data),branches:organizationBranches(data)},identity)};signal?.throwIfAborted();writeOrganization(data);return {...await areaService.load(signal),id:old.id}
+ })},
 }

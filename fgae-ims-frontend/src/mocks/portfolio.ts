@@ -1,6 +1,6 @@
 import { authService } from './auth'
 import { accounts } from './identities'
-import { allocations, assignments, attendance, workLocations } from './operations'
+import { allocations, assignments, attendance, readWorkLocations } from './operations'
 import { allowanceRecords, budgetRecords } from './participant-records'
 import { findAccount, readProfile, readRegisteredIdentities, applyAccessDirectory } from './credentials'
 import { canReadPortfolio, canReadProject, canReadMembership, mapPortfolio, type PortfolioService, type ProjectRow, type MembershipRow, type DirectoryUser } from '../services/contracts/portfolio'
@@ -29,10 +29,10 @@ export function directoryUsers(): DirectoryUser[] {
     const identity = findAccount(fixture.email) ?? fixture
     const profile = readProfile(identity)
     const row = unique.get(identity.id) ?? { id: identity.id, name: profile.name, email: identity.email, state: identity.accountState, mustChangePassword: identity.mustChangePassword, grants: [] }
-    for (const grant of identity.grants) if (!row.grants.some(item => item.role === grant.role && item.scope.kind === grant.scope.kind && item.scope.id === grant.scope.id)) row.grants.push({ ...grant, scopeName: workLocations.find(item => item.id === grant.scope.id)?.name ?? (grant.scope.kind === 'project' ? 'Demo community outreach project' : grant.scope.kind === 'self' || grant.scope.kind === 'supervision' ? profile.name : '*') })
+    for (const grant of identity.grants) if (!row.grants.some(item => item.role === grant.role && item.scope.kind === grant.scope.kind && item.scope.id === grant.scope.id)) row.grants.push({ ...grant, scopeName: readWorkLocations().find(item => item.id === grant.scope.id)?.name ?? (grant.scope.kind === 'project' ? 'Demo community outreach project' : grant.scope.kind === 'self' || grant.scope.kind === 'supervision' ? profile.name : '*') })
     unique.set(identity.id, row)
   }
-  return applyAccessDirectory([...unique.values(), { id: 'synthetic-suspended-user', name: 'Demo suspended account', email: 'suspended@example.test', state: 'SUSPENDED', mustChangePassword: false, grants: [] }, { id: 'synthetic-inactive-user', name: 'Demo inactive account', email: 'inactive@example.test', state: 'INACTIVE', mustChangePassword: false, grants: [] }])
+  return applyAccessDirectory([...unique.values(), { id: 'synthetic-suspended-user', name: 'Demo suspended account', email: 'suspended@example.test', state: 'SUSPENDED', mustChangePassword: false, grants: [] }, { id: 'synthetic-inactive-user', name: 'Demo inactive account', email: 'inactive@example.test', state: 'INACTIVE', mustChangePassword: false, grants: [] }]).map(user => ({...user,grants:user.grants.map(grant=>({...grant,scopeName:readWorkLocations().find(l=>l.id===grant.scope.id)?.name??grant.scopeName}))}))
 }
 export const portfolioService: PortfolioService = {
   async load(kind, signal) {

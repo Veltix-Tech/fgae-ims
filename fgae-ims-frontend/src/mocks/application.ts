@@ -1,3 +1,4 @@
+import { organizationBranches } from './organization-store'
 import { authService } from './auth'
 import { readWorkflow } from './correction-store'
 import { readOwnApplication } from './credentials'
@@ -22,7 +23,7 @@ export function readApplication(identity: Identity) {
     const stored = readOwnApplication(identity.id)
     const application: OwnApplication | null = readWorkflow(identity.id)?.application ?? (stored ? {
       id: stored.receipt.id, ownerId: identity.id, status: 'PENDING', submittedAt: stored.receipt.submittedAt, updatedAt: stored.receipt.submittedAt,
-      fields: stored.fields, documents: stored.documents, branchName: stored.fields.branchId === 'fictional-branch-a' ? 'Demo branch A' : stored.fields.branchId === 'fictional-branch-b' ? 'Demo branch B' : stored.fields.branchId,
+      fields: stored.fields, documents: stored.documents, branchName: organizationBranches().find(b=>b.id===stored.fields.branchId)?.name ?? stored.fields.branchId,
       history: [{ id: `${stored.receipt.id}-submitted`, status: 'PENDING', at: stored.receipt.submittedAt, note: '' }],
     } : fixture(identity))
     return mapOwnApplication(application, identity.id)

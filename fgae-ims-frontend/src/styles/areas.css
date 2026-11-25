@@ -29,3 +29,8 @@
 
 .areas-page .manager-section { margin-top: 24px; }
 .areas-page .field-help { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 8px 0 0; }
+
+.branch-columns, .branch-list > li { grid-template-columns: minmax(0,2fr) minmax(90px,1fr) minmax(0,1.5fr); }
+.organization-editor .access-actions { margin-top: 24px; }
+.organization-editor .accordion-panel[data-open="true"] .accordion-content { overflow: visible; }
+@media (max-width:700px) { .branch-list > li { grid-template-columns: minmax(0,1fr) minmax(0,1fr); } .branch-parent { text-align: right; } }
