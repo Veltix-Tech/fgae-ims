@@ -20,6 +20,19 @@ export const activateSchema = z.object({
     .max(128, "Password is too long"),
 });
 
+
+export const resendActivationSchema = z.object({
+  email: z.string()
+    .trim()
+    .email("Please provide a valid email address")
+    .max(254)
+    .transform((email) => email.toLowerCase()),
+});
+
+export type ResendActivationInput = z.infer<
+  typeof resendActivationSchema
+>;
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ActivateInput = z.infer<typeof activateSchema>;
 

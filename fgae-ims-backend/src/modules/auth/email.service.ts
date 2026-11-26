@@ -89,3 +89,60 @@ export const sendAccountActivationEmail = async ({
 
   return { sent: true };
 };
+
+
+type PasswordResetEmailInput = {
+  email: string;
+  token: string;
+  expiresAt: Date;
+};
+
+export const sendPasswordResetEmail = async ({
+  email,
+  token,
+  expiresAt,
+}: PasswordResetEmailInput) => {
+  const appBaseUrl = process.env.APP_BASE_URL;
+
+  if (!appBaseUrl) {
+    throw new AppError(
+      "Application URL is not configured",
+      503,
+    );
+  }
+
+  const resetUrl =
+    `${appBaseUrl.replace(/\/+$/, "")}` +
+    `/reset-password?token=${encodeURIComponent(token)}`;
+
+  const transporter = getTransporter();
+
+  await transporter.sendMail({
+    from: process.env.MAIL_FROM,
+    to: email,
+    subject: "Reset your FGAE-IMS password",
+    text: [
+      "You requested to reset your FGAE-IMS password.",
+      "",
+      "Use the link below to choose a new password:",
+      resetUrl,
+      "",
+      `This link expires at ${expiresAt.toISOString()}.`,
+      "If you did not request this, you can ignore this email.",
+    ].join("\n"),
+    html: `
+      <h2>Password Reset</h2>
+      <p>You requested to reset your FGAE-IMS password.</p>
+      <p>
+        <a href="${resetUrl}"
+           style="display:inline-block;padding:12px 20px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;">
+          Reset Password
+        </a>
+      </p>
+      <p>This link expires at ${expiresAt.toISOString()}.</p>
+      <p>If you did not request this, you can ignore this email.</p>
+    `,
+  });
+
+  return { sent: true };
+};

@@ -2,6 +2,7 @@
 import prisma from "../../config/db.js";
 import { verifyPassword } from "../../utils/password.js";
 import { generateAccessToken } from "../../utils/token.js";
+import { randomUUID } from "node:crypto";
 import {
   generateRefreshToken,
   hashRefreshToken,
@@ -31,9 +32,11 @@ export interface LoginMetadata {
 }
 
 // Verify credentials and generate tokens.
+
 export const authenticateUser = async (
   user: LoginUser | null,
-  enteredPassword: string
+  enteredPassword: string,
+  sessionId: string = randomUUID(),
 ): Promise<LoginResult> => {
   if (!user || user.status !== "ACTIVE") {
     throw new Error("Invalid email or password");
@@ -41,14 +44,14 @@ export const authenticateUser = async (
 
   const passwordIsValid = await verifyPassword(
     user.passwordHash,
-    enteredPassword
+    enteredPassword,
   );
 
   if (!passwordIsValid) {
     throw new Error("Invalid email or password");
   }
 
-  const accessToken = generateAccessToken(user.id);
+  const accessToken = generateAccessToken(user.id, sessionId);
   const refreshToken = generateRefreshToken();
 
   return {
@@ -61,22 +64,25 @@ export const authenticateUser = async (
   };
 };
 
+
 // Authenticate against the actual database and persist the session.
+
 export const loginWithDatabase = async (
   email: string,
   password: string,
-  metadata: LoginMetadata = {}
+  metadata: LoginMetadata = {},
 ): Promise<LoginResult> => {
-  const normalizedEmail = email.trim().toLowerCase();
-
   const user = await prisma.user.findUnique({
-    where: { email: normalizedEmail },
+    where: { email: email.trim().toLowerCase() },
     include: { credential: true },
   });
 
   if (!user || !user.credential) {
     throw new Error("Invalid email or password");
   }
+
+  // Generate the session ID before issuing the access token.
+  const sessionId = randomUUID();
 
   const result = await authenticateUser(
     {
@@ -85,15 +91,19 @@ export const loginWithDatabase = async (
       passwordHash: user.credential.passwordHash,
       status: user.status,
     },
-    password
+    password,
+    sessionId,
   );
 
   const refreshTokenHash = hashRefreshToken(result.refreshToken);
-  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
+  const expiresAt = new Date(
+    Date.now() + REFRESH_TOKEN_TTL_MS,
+  );
 
   await prisma.$transaction([
     prisma.userSession.create({
       data: {
+        id: sessionId,
         userId: user.id,
         refreshTokenHash,
         expiresAt,
@@ -110,9 +120,11 @@ export const loginWithDatabase = async (
   return result;
 };
 
+
+
 export const refreshLoginSession = async (
   currentRefreshToken: string,
-  metadata: LoginMetadata = {}
+  metadata: LoginMetadata = {},
 ): Promise<LoginResult> => {
   const tokenHash = hashRefreshToken(currentRefreshToken);
   const now = new Date();
@@ -122,8 +134,27 @@ export const refreshLoginSession = async (
     include: { user: true },
   });
 
+  if (!session) {
+    throw new Error("Invalid refresh token");
+  }
+
+  // A revoked token that was previously rotated is being reused.
+  // Revoke every remaining active session for this user.
+  if (session.revokedAt && session.lastUsedAt) {
+    await prisma.userSession.updateMany({
+      where: {
+        userId: session.userId,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: now,
+      },
+    });
+
+    throw new Error("Invalid refresh token");
+  }
+
   if (
-    !session ||
     session.revokedAt ||
     session.expiresAt <= now ||
     session.user.status !== "ACTIVE"
@@ -135,7 +166,6 @@ export const refreshLoginSession = async (
   const newRefreshTokenHash = hashRefreshToken(newRefreshToken);
   const newExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
-  // Atomically revoke the old token and create its replacement.
   const rotated = await prisma.$transaction(async (tx) => {
     const result = await tx.userSession.updateMany({
       where: {
@@ -150,28 +180,49 @@ export const refreshLoginSession = async (
     });
 
     if (result.count !== 1) {
-      throw new Error("Invalid refresh token");
+      return false;
     }
 
-    await tx.userSession.create({
-      data: {
-  userId: session.userId,
-  refreshTokenHash: newRefreshTokenHash,
-  expiresAt: newExpiresAt,
-  ipAddress: metadata.ipAddress ?? null,
-  userAgent: metadata.userAgent ?? null,
-},
-    });
+    const replacementSession = await tx.userSession.create({
+  data: {
+    userId: session.userId,
+    refreshTokenHash: newRefreshTokenHash,
+    expiresAt: newExpiresAt,
+    ipAddress: metadata.ipAddress ?? null,
+    userAgent: metadata.userAgent ?? null,
+  },
+});
 
-    return true;
+return replacementSession;
   });
 
+  // Another request may have rotated this same token first.
+  // Re-check the session after the failed atomic update.
   if (!rotated) {
+    const latestSession = await prisma.userSession.findUnique({
+      where: { id: session.id },
+    });
+
+    if (latestSession?.revokedAt && latestSession.lastUsedAt) {
+      await prisma.userSession.updateMany({
+        where: {
+          userId: session.userId,
+          revokedAt: null,
+        },
+        data: {
+          revokedAt: new Date(),
+        },
+      });
+    }
+
     throw new Error("Invalid refresh token");
   }
 
   return {
-    accessToken: generateAccessToken(session.userId),
+    accessToken: generateAccessToken(
+      session.userId,
+      rotated.id,
+  ),
     refreshToken: newRefreshToken,
     user: {
       id: session.user.id,
@@ -179,6 +230,7 @@ export const refreshLoginSession = async (
     },
   };
 };
+
 
 export const logoutUser = async (
   refreshToken: string
@@ -192,4 +244,22 @@ export const logoutUser = async (
       revokedAt: new Date(),
     },
   });
+};
+
+export const logoutAllUserSessions = async (userId: string) => {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
+  const result = await prisma.userSession.updateMany({
+    where: {
+      userId,
+      revokedAt: null,
+    },
+    data: {
+      revokedAt: new Date(),
+    },
+  });
+
+  return result;
 };

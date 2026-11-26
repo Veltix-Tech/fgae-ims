@@ -7,6 +7,7 @@ import express, {
 } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { corsOptions } from "./config/cors.js";
 
 import prisma from "./config/db.js";
 import authRoutes from "./modules/auth/auth.routes.js";
@@ -15,7 +16,7 @@ import errorHandler from "./middleware/errorHandler.js";
 const app: Application = express();
 
 // Global middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
