@@ -1,3 +1,4 @@
+import { lockedOrganization, organizationAreas, organizationBranches } from './organization-store'
 import { AccessError, canAdminUsers, validateAccess, type AccessInput, type AccessRecord, type AccessScope } from '../services/contracts/user-access'
 import type { DirectoryUser } from '../services/contracts/portfolio'
 import { ResetError, validNewPassword, type ResetRequest } from '../services/contracts/reset-password'
@@ -107,7 +108,7 @@ export async function issueRecoveryLink(email: string, requestKey: string) {
 }
 
 export async function registerApplicant(input: RegistrationInput, signal?: AbortSignal): Promise<RegistrationReceipt> {
-  return locked(async () => {
+  return lockedOrganization(() => locked(async () => {
     signal?.throwIfAborted()
     const state = read()
     const fields = { ...input.fields, email: input.fields.email.trim().toLowerCase(), fullName: input.fields.fullName.trim(), phone: normalizePhone(input.fields.phone) }
@@ -117,6 +118,8 @@ export async function registerApplicant(input: RegistrationInput, signal?: Abort
       if (existing.digest !== payload) throw new RegistrationError('VALIDATION')
       return existing.receipt
     }
+    const branch = organizationBranches().find(b => b.id === fields.branchId && b.state === 'ACTIVE')
+    if (!branch || !organizationAreas().some(a => a.id === branch.areaId && a.state === 'ACTIVE')) throw new RegistrationError('VALIDATION', { branchId: 'regBranchInvalid' })
     if (findAccount(fields.email) || fields.email === 'inactive@example.test') throw new RegistrationError('EMAIL_IN_USE')
     const id = `application-${crypto.randomUUID()}`
     const receipt: RegistrationReceipt = { id, email: fields.email, submittedAt: new Date().toISOString(), status: 'PENDING' }
@@ -127,7 +130,7 @@ export async function registerApplicant(input: RegistrationInput, signal?: Abort
     signal?.throwIfAborted()
     try { write(state) } catch { throw new RegistrationError('STORAGE_UNAVAILABLE') }
     return receipt
-  })
+  }))
 }
 async function ensureReviewLink(token: string) {
   if (!['demo-reset-volunteer', 'demo-reset-expired', 'demo-reset-used'].includes(token)) return

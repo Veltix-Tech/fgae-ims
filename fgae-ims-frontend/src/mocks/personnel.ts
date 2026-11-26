@@ -1,3 +1,4 @@
+import { organizationBranches } from './organization-store'
 import type { PersonnelSummary, HrBranch } from '../services/contracts/hr-overview'
 import { findAccount, readProfile } from './credentials'
 // Fictional personnel records are separate from authentication grants and applications.
@@ -22,3 +23,5 @@ export function readPersonnelSummaries(): PersonnelSummary[] {
     return { ...record, name: profile.name, needsContact: record.needsContact && !profile.phone.trim() }
   })
 }
+
+export const readPersonnelBranches = (): HrBranch[] => organizationBranches().map(({id,areaId,name}) => ({id,areaId,name}))

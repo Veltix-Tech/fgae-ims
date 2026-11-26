@@ -1,3 +1,4 @@
+import { lockedOrganization } from './organization-store'
 import { CorrectionError, type CorrectionContext, type CorrectionReceipt } from '../services/contracts/corrections'
 import { registrationConfig } from './registration'
 const key = 'fgae.synthetic.corrections.v1'
@@ -29,6 +30,8 @@ export async function changeWorkflow<T>(ownerId: string, guard: () => Promise<vo
     catch { throw new CorrectionError('STORAGE_UNAVAILABLE') }
     return result
   }
+  return lockedOrganization(async () => {
   if (navigator.locks) return navigator.locks.request(key, operation)
   const result = queue.then(operation, operation); queue = result.then(() => undefined, () => undefined); return result
+  })
 }

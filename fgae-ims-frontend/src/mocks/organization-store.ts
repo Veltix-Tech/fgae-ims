@@ -1,3 +1,4 @@
+import type { Facility } from '../services/contracts/facilities'
 import { AreaError, type Area, type AreaSnapshot } from '../services/contracts/areas'
 import type { Branch } from '../services/contracts/branches'
 import type { WorkLocation } from '../services/contracts/manager-overview'
@@ -14,3 +15,10 @@ export function organizationBranches(data = readOrganization()):Branch[] { const
 export function readWorkLocations():WorkLocation[] { return [...organizationAreas().map(a => ({id:a.id,areaId:a.id,name:a.name,kind:'area' as const})),...organizationBranches().map(b => ({id:b.id,areaId:b.areaId,name:b.name,kind:'branch' as const}))] }
 let queue = Promise.resolve()
 export function lockedOrganization<T>(fn:()=>Promise<T>) { if (navigator.locks) return navigator.locks.request(organizationKey,fn); const next = queue.then(fn,fn); queue = next.then(()=>undefined,()=>undefined);return next }
+
+export function organizationFacilities():Facility[] {return [
+ {id:'synthetic-facility-a1',branchId:'fictional-branch-a',code:'FAC-A1',name:'Demo service point A',address:'Demo branch A compound',state:'ACTIVE'},
+ {id:'synthetic-facility-a2',branchId:'fictional-branch-a',code:'FAC-A2',name:'Demo youth center A',address:'Demo community site A',state:'ACTIVE'},
+ {id:'synthetic-facility-a3',branchId:'fictional-branch-a',code:'FAC-A3',name:'Demo former service point A',address:'',state:'ARCHIVED'},
+ {id:'synthetic-facility-b1',branchId:'fictional-branch-b',code:'FAC-B1',name:'Demo service point B',address:'Demo branch B compound',state:'ACTIVE'},
+]}

@@ -215,3 +215,12 @@ AREA-04, BRANCH-01 and BRANCH-02 add Edit Area (`/areas/{id}/edit`), Branches (`
 Area changes require a reason and before/after confirmation. The edit page shows archive dependencies, protects against stale versions, preserves history and supports archive/restore for eligible areas. Active linked branches, unfinished work or active accounts with direct area grants block archiving; the service checks again at save. Creating a branch requires an active parent area and preserves all existing relationships. New active branches become available in account scopes and volunteer registration choices. Mutations include duplicate detection and idempotent retries.
 
 Both languages, five screen widths, shared navigation/animations, reduced motion, accessibility, dirty-form guards and session clearing apply. Backend contracts and archive policy remain proposed; real integration and fluent Amharic review are pending. Branch detail/edit remain the next batch. The approved area and directory-layout changes were pushed as `82a9cdb`.
+
+
+## Branch maintenance and facilities review batch
+
+BRANCH-03, BRANCH-04 and FACILITY-01 add Branch Details (`/branches/{id}`), Edit Branch (`/branches/{id}/edit`) and Facilities (`/facilities`). Open a branch name in Branches or an area's details. Branch Details shows its parent, linked facilities and expandable change history. Super Admin can edit the branch, review before/after values and confirm a required reason. Scope-limited managers have read-only access.
+
+Archiving checks active facilities, unfinished work, assigned accounts, current personnel, open applications, active volunteers and unsettled finance. Moving a branch to another active area requires no operational or historical references; changing status and parent together is blocked. IDs and audit history remain intact. Stale edits and duplicate codes/names are rejected, and retries retain the original operation key. Branch names propagate to current HR, account, registration and operational lookups.
+
+Facilities uses the approved directory layout with search, status/area/branch accordion filters, persistent URL filters and eight-row pagination. Both languages, shared desktop/mobile navigation, animations, ripple and reduced motion apply. Facility creation/detail/edit belong to the next three-page batch. Live contracts are implemented in frontend adapters; backend endpoints and fluent Amharic review remain pending.

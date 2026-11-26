@@ -34,12 +34,16 @@ const areaRoute = /^\/areas(?:\/([^/]+))?(\/edit)?$/.exec(window.location.pathna
 let areaId: string | undefined
 if (areaRoute?.[1] && areaRoute[1] !== 'new') { try { areaId = decodeURIComponent(areaRoute[1]) } catch { areaId = 'invalid-path' } }
 const areaPage = areaRoute ? !areaRoute[1] ? 'areas-list' : areaRoute[1] === 'new' ? 'areas-create' : areaRoute[2] ? 'areas-edit' : 'areas-detail' : undefined
-const branchPage = window.location.pathname === '/branches' ? 'branches-list' : window.location.pathname === '/branches/new' ? 'branches-create' : undefined
-const page = branchPage ?? areaPage ?? accessPage ?? portfolioPage ?? participantPage ?? managerPage ?? (window.location.pathname === '/workspaces/hr' ? 'hr' : window.location.pathname === '/workspaces/super-admin' ? 'overview' : window.location.pathname === '/account' ? 'account' : window.location.pathname === '/my-application/edit' ? 'corrections' : window.location.pathname === '/my-application' ? 'application' : window.location.pathname === '/register' ? 'register' : window.location.pathname === '/first-login' ? 'first' : window.location.pathname === '/reset-password' ? 'reset' : window.location.pathname === '/forgot-password' ? 'recovery' : 'sign-in')
-const protectedEntry = !branchPage && !areaPage && !accessPage && !portfolioPage && !participantPage && !managerPage && !['/', '/sign-in', '/forgot-password', '/reset-password', '/first-login', '/register', '/my-application', '/my-application/edit', '/account', '/workspaces/super-admin', '/workspaces/hr'].includes(window.location.pathname)
+const branchRoute = /^\/branches\/([^/]+)(\/edit)?$/.exec(window.location.pathname)
+let branchId: string | undefined
+if (branchRoute && branchRoute[1] !== 'new') { try { branchId = decodeURIComponent(branchRoute[1]!) } catch { branchId = 'invalid-path' } }
+const branchPage = window.location.pathname === '/branches' ? 'branches-list' : window.location.pathname === '/branches/new' ? 'branches-create' : branchRoute && branchId ? branchRoute[2] ? 'branches-edit' : 'branches-detail' : undefined
+const facilityPage = window.location.pathname === '/facilities' ? 'facilities-list' : undefined
+const page = facilityPage ?? branchPage ?? areaPage ?? accessPage ?? portfolioPage ?? participantPage ?? managerPage ?? (window.location.pathname === '/workspaces/hr' ? 'hr' : window.location.pathname === '/workspaces/super-admin' ? 'overview' : window.location.pathname === '/account' ? 'account' : window.location.pathname === '/my-application/edit' ? 'corrections' : window.location.pathname === '/my-application' ? 'application' : window.location.pathname === '/register' ? 'register' : window.location.pathname === '/first-login' ? 'first' : window.location.pathname === '/reset-password' ? 'reset' : window.location.pathname === '/forgot-password' ? 'recovery' : 'sign-in')
+const protectedEntry = !facilityPage && !branchPage && !areaPage && !accessPage && !portfolioPage && !participantPage && !managerPage && !['/', '/sign-in', '/forgot-password', '/reset-password', '/first-login', '/register', '/my-application', '/my-application/edit', '/account', '/workspaces/super-admin', '/workspaces/hr'].includes(window.location.pathname)
 // C-AUTH-06: the email link carries a fragment token, consumed into memory and removed from history.
 const resetTokens = page === 'reset' ? new URLSearchParams(window.location.hash.slice(1)).getAll('token') : []
 const resetToken = resetTokens.length === 1 && resetTokens[0]!.length <= 2048 ? resetTokens[0]! : ''
 if (page === 'reset') history.replaceState(null, '', '/reset-password')
 if (page === 'sign-in' && window.location.pathname !== '/sign-in') history.replaceState(null, '', '/sign-in')
-createRoot(document.getElementById('root')!).render(<StrictMode><LocaleProvider><App areaId={areaId} accessId={accessId} page={page} protectedEntry={protectedEntry} resetToken={resetToken} /></LocaleProvider></StrictMode>)
+createRoot(document.getElementById('root')!).render(<StrictMode><LocaleProvider><App branchId={branchId} areaId={areaId} accessId={accessId} page={page} protectedEntry={protectedEntry} resetToken={resetToken} /></LocaleProvider></StrictMode>)
