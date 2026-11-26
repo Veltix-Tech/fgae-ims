@@ -1,5 +1,13 @@
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from "vitest";
+import jwt from "jsonwebtoken";
+
 import {
   generateAccessToken,
   verifyAccessToken,
@@ -22,18 +30,27 @@ describe("JWT access token", () => {
   });
 
   it("should generate an access token", () => {
-    const token = generateAccessToken("user-123");
+    const token = generateAccessToken(
+      "user-123",
+      "session-123",
+    );
 
     expect(typeof token).toBe("string");
     expect(token.split(".")).toHaveLength(3);
   });
 
-  it("should verify a valid access token", () => {
-    const token = generateAccessToken("user-123");
+  it("should verify a valid access token and return its session ID", () => {
+    const token = generateAccessToken(
+      "user-123",
+      "session-123",
+    );
 
     const result = verifyAccessToken(token);
 
-    expect(result.userId).toBe("user-123");
+    expect(result).toEqual({
+      userId: "user-123",
+      sessionId: "session-123",
+    });
   });
 
   it("should reject an invalid token", () => {
@@ -41,10 +58,35 @@ describe("JWT access token", () => {
   });
 
   it("should reject a tampered token", () => {
-    const token = generateAccessToken("user-123");
+    const token = generateAccessToken(
+      "user-123",
+      "session-123",
+    );
+
     const tamperedToken =
-      token.slice(0, -1) + (token.endsWith("a") ? "b" : "a");
+      token.slice(0, -1) +
+      (token.endsWith("a") ? "b" : "a");
 
     expect(() => verifyAccessToken(tamperedToken)).toThrow();
+  });
+
+  it("should reject a token without a session ID", () => {
+    const jwt = require("jsonwebtoken");
+
+    const token = jwt.sign(
+      {},
+      process.env.JWT_ACCESS_SECRET,
+      {
+        algorithm: "HS256",
+        subject: "user-123",
+        expiresIn: 900,
+        issuer: "fgae-ims",
+        audience: "fgae-ims-api",
+      },
+    );
+
+    expect(() => verifyAccessToken(token)).toThrow(
+      "Invalid access token payload",
+    );
   });
 });

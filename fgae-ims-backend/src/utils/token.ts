@@ -1,13 +1,13 @@
 
 import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 import "dotenv/config";
 
 // JWT configuration
 const JWT_ISSUER = "fgae-ims";
 const JWT_AUDIENCE = "fgae-ims-api";
-const ACCESS_TOKEN_EXPIRY = 15 * 60; // 15 minutes in seconds
+const ACCESS_TOKEN_EXPIRY = 15 * 60;
 
-// Get the secret from environment variables
 const getJwtSecret = (): string => {
   const secret = process.env.JWT_ACCESS_SECRET;
 
@@ -18,10 +18,18 @@ const getJwtSecret = (): string => {
   return secret;
 };
 
-// Generate an access token for a user
-export const generateAccessToken = (userId: string): string => {
-  const token = jwt.sign(
-    {},
+export interface AccessTokenPayload {
+  userId: string;
+  sessionId: string;
+}
+
+// Every access token identifies both its user and its database session.
+export const generateAccessToken = (
+  userId: string,
+  sessionId: string = randomUUID(),
+): string => {
+  return jwt.sign(
+    { sid: sessionId },
     getJwtSecret(),
     {
       algorithm: "HS256",
@@ -29,27 +37,29 @@ export const generateAccessToken = (userId: string): string => {
       expiresIn: ACCESS_TOKEN_EXPIRY,
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
-    }
+    },
   );
-
-  return token;
 };
 
-// Verify an access token
 export const verifyAccessToken = (
-  token: string
-): { userId: string } => {
+  token: string,
+): AccessTokenPayload => {
   const decoded = jwt.verify(token, getJwtSecret(), {
     algorithms: ["HS256"],
     issuer: JWT_ISSUER,
     audience: JWT_AUDIENCE,
   });
 
-  if (typeof decoded === "string" || typeof decoded.sub !== "string") {
+  if (
+    typeof decoded === "string" ||
+    typeof decoded.sub !== "string" ||
+    typeof decoded.sid !== "string"
+  ) {
     throw new Error("Invalid access token payload");
   }
 
   return {
     userId: decoded.sub,
+    sessionId: decoded.sid,
   };
 };

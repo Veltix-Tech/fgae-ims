@@ -1,12 +1,13 @@
 
 import type { RequestHandler } from "express";
+import prisma from "../config/db.js";
 import { verifyAccessToken } from "../utils/token.js";
 import { AppError } from "../utils/AppError.js";
 
-export const authenticate: RequestHandler = (
+export const authenticate: RequestHandler = async (
   req,
   res,
-  next
+  next,
 ) => {
   const authHeader = req.headers.authorization;
 
@@ -23,15 +24,55 @@ export const authenticate: RequestHandler = (
     return;
   }
 
+  let payload;
+
   try {
-    const payload = verifyAccessToken(token);
+    payload = verifyAccessToken(token);
+  } catch {
+    next(new AppError("Invalid or expired access token", 401));
+    return;
+  }
+
+  try {
+    const session = await prisma.userSession.findUnique({
+      where: {
+        id: payload.sessionId,
+      },
+      select: {
+        id: true,
+        userId: true,
+        revokedAt: true,
+        expiresAt: true,
+        user: {
+          select: {
+            status: true,
+          },
+        },
+      },
+    });
+
+    if (
+      !session ||
+      session.userId !== payload.userId ||
+      session.revokedAt !== null ||
+      session.expiresAt <= new Date() ||
+      session.user.status !== "ACTIVE"
+    ) {
+      next(new AppError("Session is invalid or has expired", 401));
+      return;
+    }
+
+    req.userId = payload.userId;
 
     req.auth = {
       userId: payload.userId,
+      sessionId: payload.sessionId,
     };
 
     next();
-  } catch {
-    next(new AppError("Invalid or expired access token", 401));
+  } catch (error) {
+    // Database failures should reach the error handler,
+    // not be incorrectly reported as invalid credentials.
+    next(error);
   }
 };

@@ -1,10 +1,20 @@
 
 import type { Request, Response, NextFunction } from "express";
 import { createStaffAccountWithInvitation } from "./staffInvitation.service.js";
+import { activateAccount } from "./activation.service.js";
+import { resendActivationInvitation } from "./resendActivation.service.js";
+import { getCurrentUser } from "./currentUser.service.js";
+import { AppError } from "../../utils/AppError.js";
 import { loginWithDatabase,
          refreshLoginSession,
          logoutUser,
+         logoutAllUserSessions,
  } from "./auth.service.js";
+
+import {
+  refreshCookieOptions,
+  clearRefreshCookieOptions,
+} from "../../config/cookies.js";
 
 export const login = async (
   req: Request,
@@ -22,13 +32,7 @@ export const login = async (
     );
 
     // Keep the refresh token in an HTTP-only cookie.
-    res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refreshToken", result.refreshToken, refreshCookieOptions);
 
     res.status(200).json({
       status: "success",
@@ -76,13 +80,7 @@ export const refresh = async (
       userAgent: req.get("user-agent") ?? undefined,
     });
 
-    res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refreshToken", result.refreshToken, refreshCookieOptions);
 
     res.status(200).json({
       status: "success",
@@ -94,7 +92,7 @@ export const refresh = async (
     });
   } catch (error) {
     if (error instanceof Error && error.message === "Invalid refresh token") {
-      res.clearCookie("refreshToken", { path: "/" });
+      res.clearCookie("refreshToken", clearRefreshCookieOptions);
       res.status(401).json({
         status: "error",
         message: "Invalid or expired refresh token",
@@ -118,7 +116,7 @@ export const logout = async (
       await logoutUser(currentToken);
     }
 
-    res.clearCookie("refreshToken", { path: "/" });
+    res.clearCookie("refreshToken", clearRefreshCookieOptions);
 
     res.status(200).json({
       status: "success",
@@ -129,6 +127,30 @@ export const logout = async (
   }
 };
 
+export const logoutAll = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = req.auth?.userId;
+
+    if (!userId) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    await logoutAllUserSessions(userId);
+
+    res.clearCookie("refreshToken", clearRefreshCookieOptions);
+
+    res.status(200).json({
+      status: "success",
+      message: "Logged out from all devices successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const createStaff = async (
   req: Request,
@@ -171,5 +193,65 @@ export const createStaff = async (
     });
   } catch (error) {
     next(error);
+  }
+};
+
+export const activate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { activationToken, password } = req.body;
+
+    await activateAccount(activationToken, password);
+
+    return res.status(200).json({
+      message: "Account activated successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendActivation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+
+    await resendActivationInvitation(email);
+
+    return res.status(200).json({
+      message:
+        "If an eligible account exists, an activation invitation will be sent.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const getMe = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.auth?.userId;
+
+    if (!userId) {
+      return next(new AppError("Authentication required", 401));
+    }
+
+    const user = await getCurrentUser(userId);
+
+    return res.status(200).json({
+      user,
+    });
+  } catch (error) {
+    return next(error);
   }
 };
