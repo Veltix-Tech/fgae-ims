@@ -41,6 +41,7 @@ export const organization = {
   "branchValidation": "ስም (2–120 ቁምፊዎች)፣ ትክክለኛ ኮድ፣ ንቁ ዋና ክልል እና ምክንያት (5–500 ቁምፊዎች) ያስገቡ. መግለጫው ከ1,000 ቁምፊዎች መብለጥ የለበትም",
   "branchDuplicate": "በዚህ ኮድ ወይም በተመረጠው ክልል በዚህ ስም ቅርንጫፍ አለ",
   "branchReview": "ቅርንጫፉን ገምግም",
+"sessionTitle": "ለመቀጠል ይግቡ",
 "branchDetail": "የቅርንጫፍ ዝርዝሮች",
 "branchEdit": "ቅርንጫፍ አርትዕ",
 "branchView": "ቅርንጫፉን ይመልከቱ",

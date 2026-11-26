@@ -41,6 +41,7 @@ export const organization = {
   "branchValidation": "Enter a name (2–120 characters), a valid code, an active parent area and a reason (5–500 characters). Description must be 1,000 characters or fewer.",
   "branchDuplicate": "A branch already uses this code or this name in the selected area.",
   "branchReview": "Review branch",
+"sessionTitle": "Sign in to continue",
 "branchDetail": "Branch details",
 "branchEdit": "Edit branch",
 "branchView": "View branch",

@@ -124,3 +124,14 @@ h1:focus { outline: none; }
 @media (max-width: 800px) { .auth-layout { width: 100%; display: flex; flex-direction: column; padding: 0; } .form-panel { order: 0; padding: 48px 28px; } .welcome-panel { order: 1; border-top-width: 2px; border-radius: 0; padding: 32px max(28px, calc((100vw - 400px)/2)); } .welcome-panel h2 { font-size: 28px; white-space: normal; margin-top: 12px; } .introduction { margin-top: 12px; } .purpose-list { margin: 28px 0 8px; gap: 20px; } .panel-bottom { padding-top: 20px; } .site-header { padding: 18px 24px; } .brand p { max-width: 260px; } .site-footer { padding: 20px 24px; } }
 @media (max-width: 480px) { .site-header { padding: 16px 20px; gap: 10px; align-items: flex-start; } .brand { gap: 9px; } .brand img { width: 38px; height: 38px; } .wordmark { font-size: 20px; } .brand p { max-width: 170px; font-size: 9px; line-height: 1.5; } .wordmark-divider { padding: 0 7px; } .language-trigger { gap: 5px; padding: 6px 8px; font-size: 11px; } .language-globe { display: none; } .form-panel { padding: 36px 24px 40px; } h1 { font-size: 29px; } .form-subtitle { font-size: 13px; margin-bottom: 27px; } .field input { font-size: 16px; } .site-footer { flex-direction: column; align-items: flex-start; gap: 5px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } .primary:active:not(:disabled) { transform: none; } }
+
+/* Keep recovery beside the password and registration distinct from sign-in. */
+.sign-in-password-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.sign-in-password-heading label { margin: 0; }
+.sign-in-password-heading .text-link { display: inline-flex; align-items: center; min-height: 32px; padding: 4px 0; text-decoration: none; line-height: 1.5; }
+.sign-in-password-heading .text-link:hover { text-decoration: underline; }
+.sign-in-registration { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--divider); }
+.sign-in-registration .action-link { width: 100%; min-height: 52px; gap: 12px; border-color: var(--divider); padding: 14px 16px; text-align: left; transition: background-color var(--motion-fast), border-color var(--motion-fast); }
+.sign-in-registration .action-link span { flex: 1; }
+.sign-in-registration .action-link svg { flex-shrink: 0; }
+.sign-in-registration .action-link:hover { border-color: var(--action); }

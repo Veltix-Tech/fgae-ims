@@ -1,3 +1,4 @@
+import { SessionNotice } from '../../components/SessionNotice'
 import { DirectoryToolbar } from '../../components/DirectoryToolbar'
 import { BuildingsIcon, ArrowUpRightIcon, ArrowClockwiseIcon } from '@phosphor-icons/react'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
@@ -70,7 +71,7 @@ export function Areas({ mode, areaId }: { mode: 'list' | 'create' | 'detail'; ar
   return <section className="workspace-page portfolio-page areas-page motion-enter" aria-labelledby="areas-heading">
     {mode !== 'list' && <a href="/areas" className="text-link">{t('orgBack')}</a>}
     <div className="application-heading"><div><p className="eyebrow">{t('orgScope')}</p><h1 id="areas-heading" ref={heading} tabIndex={-1}>{t(title)}</h1><p className="form-subtitle">{t(mode === 'create' ? 'orgCreateIntro' : 'orgIntro')}</p></div></div>
-    {error && <div ref={feedback} role="alert" tabIndex={-1} className="feedback error"><p>{t(error)}</p>{!snapshot && <><Button className="secondary" disabled={busy} onClick={() => void load()}>{t('appRetry')}</Button><a href="/sign-in">{t('resetSignIn')}</a></>}</div>}
+    {error === 'homeSignInNote' ? <SessionNotice ref={feedback}/> : error && <div ref={feedback} role="alert" tabIndex={-1} className="feedback error"><p>{t(error)}</p>{!snapshot && <><Button className="secondary" disabled={busy} onClick={() => void load()}>{t('appRetry')}</Button><a href="/sign-in">{t('resetSignIn')}</a></>}</div>}
     {busy && <p className="session-check" role="status"><span className="spinner" aria-hidden="true" />{t(snapshot && mode === 'create' ? 'orgSaving':snapshot ? 'orgRefreshing':'orgLoading')}</p>}
     {snapshot && mode === 'list' && <section className="application-card area-directory" aria-labelledby="area-directory-heading"><DirectoryToolbar href={identity && canCreateArea(identity) ? '/areas/new' : undefined} label={t('orgCreate')}><h2 id="area-directory-heading">{t('orgAreas')}</h2><p className="step-intro">{t('orgRelationshipNote')}</p></DirectoryToolbar>
       <div className="directory-filters"><div className="field"><label htmlFor="area-search">{t('orgSearch')}</label><input id="area-search" type="search" maxLength={120} value={query} onChange={e => { setQuery(e.target.value); setPage(1) }} /></div><AccordionSelect id="area-status" label={t('orgState')} value={status} onChange={value => {setStatus(value);setPage(1)}} options={[{value:'',label:t('orgAll')},{value:'ACTIVE',label:t('orgActive')},{value:'ARCHIVED',label:t('orgArchived')}]} /><Button className="secondary" onClick={() => {setQuery('');setStatus('');setPage(1)}}>{t('portClear')}</Button></div>

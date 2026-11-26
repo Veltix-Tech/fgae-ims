@@ -7,7 +7,7 @@ import { canManageAccount } from '../../services/contracts/account'
 import { canReadOwnApplication } from '../../services/contracts/application'
 import { Button } from '../../components/Button'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { ArrowRightIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon, InfoIcon, SignOutIcon, WarningCircleIcon } from '@phosphor-icons/react'
+import { UserPlusIcon, ArrowRightIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon, InfoIcon, SignOutIcon, WarningCircleIcon } from '@phosphor-icons/react'
 import { authService } from '@auth-adapter'
 import { AuthError, type AuthService, type Identity } from '../../services/contracts/auth'
 import { useLocale } from '../../i18n/locale'
@@ -156,7 +156,7 @@ export function SignIn({ service = authService, protectedEntry = false }: { serv
         {fields.email ? <p id="email-error" className="field-error">{t(fields.email)}</p> : <p id="email-hint" className="field-hint">{t('accessNote')}</p>}
       </div>
       <div className="field password-field">
-        <label htmlFor="password">{t('password')}</label>
+        <div className="sign-in-password-heading"><label htmlFor="password">{t('password')}</label><a href="/forgot-password" className="text-link">{t('forgotPassword')}</a></div>
         <div className="password-control">
           <input ref={passwordRef} id="password" name="password" type={revealed ? 'text' : 'password'} autoComplete="current-password" required
             value={password} onChange={event => { setPassword(event.target.value); setFields(old => ({ ...old, password: undefined })) }}
@@ -171,8 +171,7 @@ export function SignIn({ service = authService, protectedEntry = false }: { serv
         {t(busy === 'login' ? 'signingIn' : 'signIn')}{busy === 'login' ? <span className="spinner" aria-hidden="true" /> : <ArrowRightIcon size={20} aria-hidden="true" />}
       </Button>
       <span className="sr-only" role="status">{busy === 'login' ? t('signingIn') : ''}</span>
-      <div className="forgot-link"><a href="/forgot-password" className="text-link">{t('forgotPassword')}</a></div>
-      <div className="forgot-link"><a href="/register" className="text-link">{t('regLink')}</a></div>
+      <div className="sign-in-registration"><a href="/register" className="secondary action-link"><UserPlusIcon size={21} aria-hidden="true"/><span>{t('regLink')}</span><ArrowRightIcon size={18} aria-hidden="true"/></a></div>
     </form>}
     <aside className="account-help" aria-label={t('helpTitle')}><InfoIcon size={21} aria-hidden="true" /><div><h2>{t('helpTitle')}</h2><p>{t('help')}</p></div></aside>
   </section>
