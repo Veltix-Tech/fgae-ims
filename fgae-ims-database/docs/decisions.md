@@ -16,6 +16,7 @@
 14. Are approval and disbursement separate permissions?
 Does AuditLog need before and after values and partitioning?
 15. Who creates the first SUPER_ADMIN and Organization?
+16. “Budget limit is not enforced by the database. Should the backend check it in a transaction using the version column, or should a trigger enforce it?”
 ## Answered
 - Application flow: SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED
 - Model names: PascalCase singular (no @@map)
@@ -25,3 +26,8 @@ Does AuditLog need before and after values and partitioning?
 - User.status default: INVITED or ACTIVE?
 - Keep User.name? Should passwordHash be required?
 - Is the registration fee paid before or after approval?
+
+## Confirmed as built in migration 20261116180814
+- ApplicationStatus: AWAITING_PAYMENT, REGISTERED, CANCELLED (no review/approve/reject step, unlike the guide)
+- volunteer_applications.personId is unique (no reapplication)
+- Changing either later needs a new migration (enum change, or dropping a unique index)
