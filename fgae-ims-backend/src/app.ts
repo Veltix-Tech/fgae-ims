@@ -13,7 +13,14 @@ import prisma from "./config/db.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import errorHandler from "./middleware/errorHandler.js";
 
+import helmet from "helmet";
+import { trustProxy } from "./config/security.js";
+
 const app: Application = express();
+
+app.set("trust proxy", trustProxy);
+
+app.use(helmet());
 
 // Global middleware
 app.use(cors(corsOptions));
