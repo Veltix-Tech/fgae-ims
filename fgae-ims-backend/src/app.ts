@@ -16,6 +16,9 @@ import errorHandler from "./middleware/errorHandler.js";
 import helmet from "helmet";
 import { trustProxy } from "./config/security.js";
 
+import swaggerUi from "swagger-ui-express";
+import openApiSpec from "./config/swagger.js";
+
 const app: Application = express();
 
 app.set("trust proxy", trustProxy);
@@ -26,6 +29,17 @@ app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+
+// API documentation
+app.get("/api-docs.json", (_req, res) => {
+  res.json(openApiSpec);
+});
+
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(openApiSpec),
+);
 
 // Authentication routes
 app.use("/auth", authRoutes);
