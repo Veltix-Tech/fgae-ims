@@ -46,11 +46,23 @@ import {
   changePasswordSchema,
 } from "./changePassword.validation.js";
 
+import {
+  loginLimiter,
+  refreshLimiter,
+  logoutLimiter,
+  logoutAllLimiter,
+  passwordResetRequestLimiter,
+  passwordResetConfirmLimiter,
+  resendActivationLimiter,
+  activationLimiter,
+} from "../../config/rateLimit.js";
+
 const router = Router();
 
 // Public authentication routes.
 router.post(
   "/login",
+  loginLimiter,
   requireTrustedOrigin,
   validate(loginSchema),
   login,
@@ -58,12 +70,14 @@ router.post(
 
 router.post(
   "/refresh",
+  refreshLimiter,
   requireTrustedOrigin,
   refresh,
 );
 
 router.post(
   "/logout",
+  logoutLimiter,
   requireTrustedOrigin,
   logout,
 );
@@ -71,28 +85,37 @@ router.post(
 // Protected current-user endpoint.
 router.get("/me", authenticate, getMe);
 
-router.post("/logout-all", authenticate, logoutAll);
+router.post(
+  "/logout-all",
+  logoutAllLimiter,
+  authenticate,
+  logoutAll,
+);
 
 router.post(
   "/activate",
+  activationLimiter,
   validate(activateSchema),
   activate
 );
 
 router.post(
   "/resend-activation",
+  resendActivationLimiter,
   validate(resendActivationSchema),
   resendActivation
 );
 
 router.post(
   "/forgot-password",
+  passwordResetRequestLimiter,
   validate(requestPasswordResetSchema),
   requestPasswordReset,
 );
 
 router.post(
   "/reset-password",
+  passwordResetConfirmLimiter,
   validate(confirmPasswordResetSchema),
   confirmPasswordReset,
 );
