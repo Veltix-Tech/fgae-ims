@@ -339,6 +339,7 @@ model OrganizationalAssignment {
   @@index([organizationId])
   @@index([areaId])
   @@index([branchId])
+  @@index([assignedById])
   @@map("organizational_assignments")
 }
 
@@ -631,6 +632,7 @@ model VolunteerSkill {
   skill Skill @relation(fields: [skillId], references: [id], onDelete: Restrict )
 
   @@unique([volunteerId, skillId])
+  @@index([skillId])
   @@map("volunteer_skills")
 }
 
@@ -681,6 +683,7 @@ model VolunteerInterest {
   interest Interest @relation(fields: [interestId], references: [id], onDelete: Restrict )
 
   @@unique([volunteerId, interestId])
+  @@index([interestId])
   @@map("volunteer_interests")
 }
 
