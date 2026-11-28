@@ -14,8 +14,8 @@ export const allocations = [
   { id: 'synthetic-work-outside', title: 'Branch B outreach', areaId: 'fictional-area-b', branchId: 'fictional-branch-b', state: 'ACTIVE' as const, dueAt: '2026-11-26T14:00:00Z', target: 1 },
 ]
 export const assignments = [
-  { id: 'assignment-1', workId: 'synthetic-work-outreach', volunteerId: 'fictional-person-7', supervisorId: null },
-  { id: 'assignment-2', workId: 'synthetic-work-completed', volunteerId: 'fictional-person-7', supervisorId: 'fictional-person-5' },
+  { id: 'assignment-1', facilityId: 'synthetic-facility-a1', workId: 'synthetic-work-outreach', volunteerId: 'fictional-person-7', supervisorId: null },
+  { id: 'assignment-2', facilityId: 'synthetic-facility-a3', workId: 'synthetic-work-completed', volunteerId: 'fictional-person-7', supervisorId: 'fictional-person-5' },
 ]
 export const attendance = [{ id: 'attendance-1', assignmentId: 'assignment-1', state: 'PENDING' }, { id: 'attendance-2', assignmentId: 'assignment-2', state: 'APPROVED' }]
 export function readWorkRows(level: 'area' | 'branch'): WorkRow[] {
