@@ -105,5 +105,7 @@ export const organization = {
 "facilityAuditArchive": "ተቋሙ ወደ ማህደር ገብቷል",
 "facilityAuditRestore": "ተቋሙ ተመልሷል",
 "facilityAuditMove": "ቅርንጫፉ ተቀይሯል",
-"facilityNoHistory": "ለዚህ ተቋም የተመዘገበ የለውጥ ታሪክ የለም"
+"facilityNoHistory": "ለዚህ ተቋም የተመዘገበ የለውጥ ታሪክ የለም",
+"facilityFilters": "ማጣሪያዎች",
+"facilityRemoveFilter": "ማጣሪያ አስወግድ"
 }

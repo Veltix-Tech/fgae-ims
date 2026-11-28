@@ -1,3 +1,4 @@
+import { signInReturnHref } from '../../permissions/return-destination'
 import { canCorrect } from '../../services/contracts/corrections'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowClockwiseIcon, ArrowLeftIcon, CheckCircleIcon, ClockIcon, FileTextIcon, InfoIcon, SignOutIcon } from '@phosphor-icons/react'
@@ -74,7 +75,7 @@ export function MyApplication({ service = applicationService }: { service?: Appl
     </div>
     {busy || signingOut ? <p className="session-check" role="status"><span className="spinner" aria-hidden="true" />{t(signingOut ? 'signingOut' : 'appRefreshing')}</p> : error ? <div className="application-state motion-enter" role={gate ? 'status' : 'alert'}>
       {!gate && <><h2>{t(error === 'logoutFailed' ? 'logoutFailed' : 'appError')}</h2><p>{t(error)}</p></>}
-      {gate ? <a href="/sign-in" className="primary action-link">{t(error === 'appSignIn' ? 'signIn' : 'appAccount')}</a> : <Button className="primary" disabled={signingOut} onClick={() => void load(true)}>{t('appRetry')}</Button>}
+      {gate ? <a href={error === 'appSignIn' ? signInReturnHref() : '/sign-in'} className="primary action-link">{t(error === 'appSignIn' ? 'signIn' : 'appAccount')}</a> : <Button className="primary" disabled={signingOut} onClick={() => void load(true)}>{t('appRetry')}</Button>}
     </div> : snapshot && <div className="motion-enter">
       <div className="application-owner"><span>{snapshot.identity.name}</span><span>{snapshot.identity.email}</span></div>
       {record ? <>

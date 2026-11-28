@@ -1,3 +1,4 @@
+import { afterSignInDestination, readReturnDestination } from '../../permissions/return-destination'
 import { canReadPortfolio, portfolioKinds, portfolioPath } from '../../services/contracts/portfolio'
 import { canReadParticipant, participantKinds } from '../../services/contracts/participant-overview'
 import { canReadManager, managerKinds } from '../../services/contracts/manager-overview'
@@ -19,6 +20,8 @@ const journeyCopy = { 'password-change': 'passwordChange', application: 'applica
 
 export function SignIn({ service = authService, protectedEntry = false }: { service?: AuthService; protectedEntry?: boolean }) {
   const { t } = useLocale()
+  const [returnTo] = useState(() => readReturnDestination())
+  const returning = useRef(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [revealed, setRevealed] = useState(false)
@@ -59,7 +62,12 @@ export function SignIn({ service = authService, protectedEntry = false }: { serv
   }, [])
 
   useEffect(() => { if (error) feedbackRef.current?.focus() }, [error])
-  useEffect(() => { if (identity) headingRef.current?.focus() }, [identity])
+  useEffect(() => {
+    if (!identity) return
+    const destination = afterSignInDestination(identity, returnTo)
+    if (destination && !returning.current) { returning.current = true; location.replace(destination) }
+    else if (!destination) headingRef.current?.focus()
+  }, [identity, returnTo])
 
   useEffect(() => {
     if (!identity) return

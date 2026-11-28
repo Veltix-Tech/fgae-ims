@@ -105,5 +105,7 @@ export const organization = {
 "facilityAuditArchive": "Facility archived",
 "facilityAuditRestore": "Facility restored",
 "facilityAuditMove": "Parent branch changed",
-"facilityNoHistory": "No recorded change history is available for this facility."
+"facilityNoHistory": "No recorded change history is available for this facility.",
+"facilityFilters": "Filters",
+"facilityRemoveFilter": "Remove filter"
 }

@@ -1,3 +1,4 @@
+import { readReturnDestination, signInReturnHref } from '../../permissions/return-destination'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ArrowRightIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon, InfoIcon, LockKeyIcon, SignOutIcon, WarningCircleIcon } from '@phosphor-icons/react'
 import { authService } from '@auth-adapter'
@@ -172,7 +173,7 @@ export function FirstLogin() {
       <div ref={signOutButton}><Button className="secondary recovery-change" disabled={!!busy} onClick={() => dirty ? setLeaving(true) : void signOut()}>{t(busy === 'logout' ? 'signingOut' : 'signOut')}<SignOutIcon size={18} aria-hidden="true" /></Button></div>
     </>}
     {view === 'check-error' && <Button className="primary" onClick={() => { setError(null); setView('checking'); setAttempt(old => old + 1) }}>{t('resetRetry')}</Button>}
-    {['signed-out', 'not-required', 'success'].includes(view) && <a className="primary action-link" href="/sign-in">{t('resetSignIn')}<ArrowRightIcon size={20} aria-hidden="true" /></a>}
+    {['signed-out', 'not-required', 'success'].includes(view) && <a className="primary action-link" href={signInReturnHref(readReturnDestination() ?? '')}>{t('resetSignIn')}<ArrowRightIcon size={20} aria-hidden="true" /></a>}
     <aside className="account-help" aria-label={t('helpTitle')}><InfoIcon size={21} aria-hidden="true" /><div><h2>{t('helpTitle')}</h2><p>{t('help')}</p></div></aside>
   </section>
 }
