@@ -19,7 +19,7 @@ async function files(value: CorrectionContext, documents: RegistrationDocument[]
     const original = value.application.documents.some(item => JSON.stringify(item) === JSON.stringify(doc))
     let stored = await readRegistrationItem<{ ownerId?: string; applicationId?: string; doc: RegistrationDocument; blob: Blob }>(`correction-file:${doc.id}`)
     if (stored && (stored.ownerId !== ownerId || stored.applicationId !== value.application.id)) throw new CorrectionError('DOCUMENT_MISSING')
-    if (!stored && original) stored = await readRegistrationItem(`file:${doc.id}`)
+    if (!stored && original) stored = await readRegistrationItem(`file:${doc.id}`) ?? await readRegistrationItem(`review-file:${doc.id}`)
     const rule = value.config.documents.find(item => item.id === doc.typeId)
     if (!stored || JSON.stringify(stored.doc) !== JSON.stringify(doc) || !rule) throw new CorrectionError('DOCUMENT_MISSING')
     await validateDocument(new File([stored.blob], doc.name, { type: doc.mime }), rule)
@@ -63,7 +63,7 @@ export const correctionService: CorrectionService = {
     if (stored?.ownerId === identity.id && stored.applicationId === value.application.id) { if ((await owner(signal)).id !== identity.id) throw new CorrectionError('SESSION_EXPIRED'); return stored.blob }
     // Existing registration files can only be read through this authenticated application's attachment list.
     if (value.application.documents.some(doc => doc.id === id)) {
-      const original = await readRegistrationItem<{ blob: Blob }>(`file:${id}`)
+      const original = await readRegistrationItem<{ blob: Blob }>(`file:${id}`) ?? await readRegistrationItem<{ blob: Blob }>(`review-file:${id}`)
       if (original) { if ((await owner(signal)).id !== identity.id) throw new CorrectionError('SESSION_EXPIRED'); return original.blob }
     }
     throw new CorrectionError('DOCUMENT_MISSING')

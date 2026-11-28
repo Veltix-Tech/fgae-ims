@@ -95,6 +95,7 @@ export const en = {
   signOut: 'Sign out', signingOut: 'Signing out…', logoutFailed: 'We couldn’t complete sign out. Please try again.',
   accountLabel: 'Signed-in account', rolesLabel: 'Account roles', sessionNotice: 'Sign in to access your account.',
   sessionLost: 'Your session has changed. Sign in again to continue.', title: 'Sign in · FGAE IMS',
+  reviewNav: 'Application review', staffNav: 'Register volunteer',
   SUPER_ADMIN: 'Super Admin', HR: 'HR', AREA_MANAGER: 'Area Manager', BRANCH_MANAGER: 'Branch Manager',
   VOLUNTEER_MANAGER: 'Volunteer Manager', FIELD_SUPERVISOR: 'Field Supervisor', FINANCE_OFFICER: 'Finance Officer',
   VOLUNTEER: 'Volunteer', PROJECT_MANAGER: 'Project Manager', MEMBER: 'Member',

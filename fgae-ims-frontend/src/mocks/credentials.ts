@@ -1,3 +1,6 @@
+import { canReviewBranch } from '../services/contracts/review'
+import type { Workflow } from './correction-store'
+import type { ReviewRecord, ReviewReceipt } from '../services/contracts/review'
 import { lockedOrganization, organizationAreas, organizationBranches } from './organization-store'
 import { AccessError, canAdminUsers, validateAccess, type AccessInput, type AccessRecord, type AccessScope } from '../services/contracts/user-access'
 import type { DirectoryUser } from '../services/contracts/portfolio'
@@ -13,7 +16,7 @@ const INITIAL_PASSWORD = 'Demo-only-2026!'
 type Credential = { temporary?: boolean; salt: string; digest: string; revision: number; firstLogin?: { key: string; digest: string; previousRevision: number }; passwordChange?: { key: string; digest: string; previousRevision: number } }
 type Link = { token: string; email: string; expiresAt: number; usedAt?: number; completionKey?: string; completionDigest?: string }
 type Application = { identity: Identity; fields: RegistrationInput['fields']; documents: RegistrationInput['documents']; receipt: RegistrationReceipt; key: string; digest: string }
-type State = { version: 1; credentials: Record<string, Credential>; links: Link[]; applications?: Application[]; profiles?: Record<string, AccountProfile>; access?: Record<string, AccessRecord>; accessReceipts?: Record<string, { actorId: string; payload: string; record: AccessRecord }> }
+type State = { review?: Record<string, { record: ReviewRecord; workflow: Workflow }>; volunteers?: Record<string, { fields: RegistrationInput['fields']; documents: RegistrationInput['documents']; version: number; ownerId: string; branchId: string; supervisorId: string | null; createdAt: string }>; reviewReceipts?: Record<string, { actorId: string; payload: string; receipt: ReviewReceipt }>; version: 1; credentials: Record<string, Credential>; links: Link[]; applications?: Application[]; profiles?: Record<string, AccountProfile>; access?: Record<string, AccessRecord>; accessReceipts?: Record<string, { actorId: string; payload: string; record: AccessRecord }> }
 function read(): State {
   try {
     const raw = localStorage.getItem(STORE)
@@ -248,4 +251,33 @@ export async function mutateAccess(input: AccessInput, scopes: AccessScope[], li
     write(state)
     return { ownerId: actor.id, record: structuredClone(record), temporaryPassword, replayed: false }
   })
+}
+
+export function readReviewed(ownerId: string) { return structuredClone(read().review?.[ownerId] ?? null) }
+// The application, profile, credential and grants share one atomic storage commit.
+// Caller holds the organization lock, also used by applicant corrections.
+export async function commitReview(actor: Identity, key: string, payload: string, prepare: () => Promise<{ record: ReviewRecord; workflow: Workflow; staff: boolean }>, guard: () => Promise<Identity>, signal?: AbortSignal): Promise<ReviewReceipt> {
+ return locked(async () => {
+  const state = read(); const previous = state.reviewReceipts?.[key]
+  if (previous) { const branch = organizationBranches().find(b=>b.id===previous.receipt.record.application.fields.branchId); if(!branch || !canReviewBranch(actor,branch))throw new AccessError('FORBIDDEN'); if (previous.actorId !== actor.id || previous.payload !== payload) throw new AccessError('CONFLICT'); return {...structuredClone(previous.receipt), temporaryPassword: null, replayed: true} }
+  const {record,workflow,staff} = await prepare(); const app = record.application; const email = app.fields.email.trim().toLowerCase(); let temporaryPassword: string | null = null
+  if (staff) {
+   if (findAccount(email) || accounts.some(i=>i.email===email) || state.applications?.some(a=>a.identity.email===email) || Object.values(state.access??{}).some(a=>a.user.email===email)) throw new AccessError('EMAIL_IN_USE')
+   state.applications = [...(state.applications ?? []), {identity:{id:app.ownerId,name:app.fields.fullName,email,accountState:'PENDING',mustChangePassword:true,grants:[]},fields:app.fields,documents:app.documents,receipt:{id:app.id,email,submittedAt:app.submittedAt,status:'PENDING'},key,digest:payload}]
+   temporaryPassword=`Fgae-${crypto.randomUUID()}!`;const salt=crypto.randomUUID();state.credentials[email]={salt,digest:await digest(temporaryPassword,salt),revision:1,temporary:true}
+  }
+  if (app.status === 'APPROVED') {
+   if (record.source === 'STAFF' && !state.credentials[email]) { temporaryPassword=`Fgae-${crypto.randomUUID()}!`;const salt=crypto.randomUUID();state.credentials[email]={salt,digest:await digest(temporaryPassword,salt),revision:1,temporary:true} }
+   const base=state.access?.[app.ownerId]?.user
+   const user: DirectoryUser={id:app.ownerId,name:app.fields.fullName,email,state:'ACTIVE',mustChangePassword:state.credentials[email]?.temporary??false,grants:[...(base?.grants.filter(g=>g.role!=='VOLUNTEER')??[]),{role:'VOLUNTEER',scope:{kind:'self',id:app.ownerId},scopeName:app.fields.fullName}]}
+   state.access={...state.access,[app.ownerId]:{user,version:(state.access?.[app.ownerId]?.version??0)+1,history:[...(state.access?.[app.ownerId]?.history??[]),{id:crypto.randomUUID(),at:app.updatedAt,actor:actor.name,actorId:actor.id,action:base?'UPDATE':'CREATE',reason:'Volunteer application approved',before:base??null,after:user}]}}
+   const profile=state.profiles?.[app.ownerId];state.profiles={...state.profiles,[app.ownerId]:{ownerId:app.ownerId,name:app.fields.fullName,phone:app.fields.phone,locale:profile?.locale??'en',photo:profile?.photo??null,editableFields:profile?.editableFields??['name','phone'],version:(profile?.version??0)+1}}
+   state.volunteers={...state.volunteers,[app.ownerId]:{fields:structuredClone(app.fields),documents:structuredClone(app.documents),version:1,ownerId:app.ownerId,branchId:app.fields.branchId,supervisorId:record.supervisorId,createdAt:app.updatedAt}}
+  }
+  state.review={...state.review,[app.ownerId]:{record,workflow}}
+  const receipt:ReviewReceipt={record,temporaryPassword:null,replayed:false}
+  state.reviewReceipts={...state.reviewReceipts,[key]:{actorId:actor.id,payload,receipt}}
+  signal?.throwIfAborted();const current=await guard();if(JSON.stringify(current)!==JSON.stringify(actor))throw new AccessError('SESSION_EXPIRED')
+  write(state); return {...structuredClone(receipt),temporaryPassword}
+ })
 }

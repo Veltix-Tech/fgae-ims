@@ -3,7 +3,7 @@ import type { RegistrationDocument, RegistrationFields } from './registration'
 
 export const applicationStatuses = ['PENDING', 'RETURNED', 'APPROVED', 'REJECTED'] as const
 export type ApplicationStatus = typeof applicationStatuses[number]
-export interface ApplicationEvent { id: string; status: ApplicationStatus; at: string; note: string }
+export interface ApplicationEvent { actorId?: string; id: string; status: ApplicationStatus; at: string; note: string }
 export interface OwnApplication {
   id: string; ownerId: string; status: ApplicationStatus; submittedAt: string; updatedAt: string
   fields: RegistrationFields; branchName: string; documents: RegistrationDocument[]; history: ApplicationEvent[]
@@ -32,7 +32,7 @@ export function mapOwnApplication(value: unknown, ownerId: string): OwnApplicati
   if (!['', 'FEMALE', 'MALE', 'OTHER', 'UNDISCLOSED'].includes(data.fields.gender)) return invalid()
   if (!Array.isArray(data.documents) || data.documents.some(doc => !doc || !string(doc.id) || !string(doc.typeId) || !string(doc.name) || !['application/pdf', 'image/png', 'image/jpeg'].includes(doc.mime) || !Number.isFinite(doc.size) || doc.size <= 0)) return invalid()
   if (new Set(data.documents.map(doc => doc.id)).size !== data.documents.length) return invalid()
-  if (!Array.isArray(data.history) || !data.history.length || data.history.some(event => !event || !string(event.id) || !status(event.status) || !date(event.at) || typeof event.note !== 'string')) return invalid()
+  if (!Array.isArray(data.history) || !data.history.length || data.history.some(event => !event || !string(event.id) || !status(event.status) || !date(event.at) || typeof event.note !== 'string' || event.actorId !== undefined && !string(event.actorId))) return invalid()
   if (data.history.some(event => ['RETURNED', 'REJECTED'].includes(event.status) && !event.note.trim())) return invalid()
   if (new Set(data.history.map(event => event.id)).size !== data.history.length || data.history[0]!.status !== 'PENDING' || data.history[0]!.at !== data.submittedAt) return invalid()
   if (data.history.some((event, i) => Date.parse(event.at) > Date.parse(data.updatedAt) || i > 0 && Date.parse(event.at) < Date.parse(data.history[i - 1]!.at)) || data.history.at(-1)!.status !== data.status) return invalid()

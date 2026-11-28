@@ -1,6 +1,6 @@
 import type {Identity} from '../services/contracts/auth'
 // Only implemented protected routes can be return destinations. Never follow an arbitrary URL.
-const route = /^(?:\/(?:areas|branches|facilities|users)(?:\/[^/]+(?:\/edit)?)?|\/account|\/my-application(?:\/edit)?|\/workspaces\/(?:super-admin|hr|area-manager|branch-manager|volunteer-manager|field-supervisor|finance-officer|volunteer|project-manager|member))$/
+const route = /^(?:\/(?:areas|branches|facilities|users)(?:\/[^/]+(?:\/edit)?)?|\/applications(?:\/[^/]+)?|\/volunteers\/register|\/account|\/my-application(?:\/edit)?|\/workspaces\/(?:super-admin|hr|area-manager|branch-manager|volunteer-manager|field-supervisor|finance-officer|volunteer|project-manager|member))$/
 export function safeReturnDestination(value: string | null): string | null {
   if (!value || value.length > 4096 || !value.startsWith('/') || value.startsWith('//') || value.includes('\\') || [...value].some(char => char.charCodeAt(0) <= 32)) return null
   try {

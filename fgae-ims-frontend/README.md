@@ -241,3 +241,14 @@ Expired-session sign-in actions preserve the requested protected route, query fi
 
 ## Facilities directory presentation
 Facilities keeps Create beside the directory heading and uses one compact search bar, an animated Filters disclosure and an icon refresh action. Status, area and branch selectors are collapsed initially; active filters remain visible as removable chips, with a clear-all action when filtering. Records use aligned facility/code, branch/area, location and status columns with direct detail links, subtle hover states and compact status badges. Mobile stacks the same records without horizontal scrolling. Existing scoped filtering, URL persistence and content-sized pagination remain intact.
+
+
+## Application review and staff registration
+
+The next review batch adds `/applications`, `/applications/{id}` and `/volunteers/register`. Open Application review in the shared navigation. The directory includes search, accordion filters, URL-persisted pagination and direct detail links. Details show identity, documents, registration source, fee-policy configuration status and decision history. Authorized reviewers can approve with branch/optional supervisor placement, request specific field/document corrections, or reject with a reason. Revision checks reject stale decisions and retained idempotency keys make retries safe.
+
+Super Admin registration creates an active volunteer. Volunteer Manager registration remains pending and requires another authorized reviewer. Staff accounts receive a unique temporary credential in the completion handover only; pending accounts gain no operational permissions. Reveal/copy/clear controls, five-minute clearing and mandatory first-login replacement are included. A lost credential requires an authorized reset. Approval atomically records the application, volunteer profile, reviewed account details and volunteer grant. Public applicants retain their existing password. Corrections/resubmissions preserve prior versions and feed back into the same review queue.
+
+The mock adapter persists these linked workflows locally for testing. The live adapter uses authenticated proposed `/volunteers/review` endpoints with strict response validation, refresh handling, upload progress and no synthetic fallback. The backend must implement authorization, storage transactions, document ownership, provisioning and audit. Fee policy is explicitly unconfigured; this batch does not invent a fee or mark payment as completed. Optional supervisor choices require an explicit compatible branch/area/global assignment; supervision-only grants do not imply a branch.
+
+English/Amharic, five responsive widths, keyboard/accessibility checks, session return, dirty-form protection, shared accordions, ripple and animated directory results are covered. Approved Facilities/return-flow changes were pushed as `973b7fe`; this new three-page batch is prepared locally for review.

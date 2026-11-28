@@ -1,0 +1,18 @@
+.review-page > .application-card { margin-top: 24px; }
+.review-page fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
+.review-fields, .review-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+.review-facts { margin: 24px 0; }.review-facts dt { color: var(--muted); font-size: 12px; margin-bottom: 6px; }.review-facts dd { margin: 0; overflow-wrap: anywhere; }
+.review-columns,.review-list > li { grid-template-columns: minmax(0,2fr) minmax(0,1.2fr) minmax(0,1fr); }
+.review-check { display: flex; gap: 12px; align-items: start; margin: 18px 0; }.review-check input { width:20px;height:20px;flex-shrink:0; }
+.review-documents { padding:0;list-style:none; }.review-documents li { display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--divider);overflow-wrap:anywhere; }.review-documents button { width:auto; }
+.review-history { padding-left:24px; }.review-history li { padding:12px 0; }.review-history time { display:block;color:var(--muted);font-size:12px; }.review-history p { white-space:pre-wrap;overflow-wrap:anywhere; }
+.review-steps { display:flex;gap:16px;padding:0;list-style:none;margin:28px 0; }.review-steps li { flex:1;color:var(--muted);font-size:12px;border-bottom:2px solid var(--divider);padding-bottom:14px; }.review-steps li[aria-current] { color:var(--action);border-color:var(--action); }.review-steps span { display:inline-grid;place-items:center;width:26px;height:26px;border:1px solid var(--divider);border-radius:50%;margin-right:8px; }.review-steps li[aria-current] span { background:var(--action);color:white; }
+.review-handover code { display:block;overflow-wrap:anywhere;padding:16px;background:var(--pale-sky); }
+.review-page .access-actions { margin-top:28px; }.review-page .ui-accordion { margin-top:20px; }
+@media(max-width:700px){.review-fields,.review-facts{grid-template-columns:1fr;gap:18px;}.review-list > li{grid-template-columns:1fr;}.review-list .workspace-badge{margin-left:0;justify-self:start;}.review-steps{gap:8px;}.review-steps span{display:grid;margin-bottom:8px;}}
+
+.review-notice { padding: 16px 18px; border: 1px solid var(--divider); border-left: 3px solid var(--action); border-radius: 8px; background: var(--pale-sky); color: var(--ink); line-height: 1.7; font-size: 13px; }
+.review-fields > .field { margin-bottom: 0; }
+.review-page > .text-link { display: inline-flex; margin-bottom: 20px; }
+
+.review-page .feedback.success { color: #146847; background: #EFF9F3; border-color: #ABD4BC; }

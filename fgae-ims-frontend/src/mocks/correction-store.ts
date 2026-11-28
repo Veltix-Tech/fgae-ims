@@ -1,3 +1,4 @@
+import { readReviewed } from './credentials'
 import { lockedOrganization } from './organization-store'
 import { CorrectionError, type CorrectionContext, type CorrectionReceipt } from '../services/contracts/corrections'
 import { registrationConfig } from './registration'
@@ -6,7 +7,9 @@ export interface Workflow extends CorrectionContext { receipts: { key: string; p
 export function readWorkflow(ownerId: string): Workflow | null {
   try {
     const stored = JSON.parse(localStorage.getItem(key) || '{}') as Record<string, Workflow>
-    if (stored[ownerId]) return {...structuredClone(stored[ownerId]), config: structuredClone(registrationConfig)}
+    const reviewed = readReviewed(ownerId)?.workflow
+    const latest = reviewed && reviewed.revision > (stored[ownerId]?.revision ?? 0) ? reviewed : stored[ownerId] ?? reviewed
+    if (latest) return {...structuredClone(latest), config: structuredClone(registrationConfig)}
   } catch { throw new CorrectionError('STORAGE_UNAVAILABLE') }
   if (ownerId !== 'fictional-returned-applicant') return null
   const submittedAt = '2026-11-10T08:00:00.000Z'; const returnedAt = '2026-11-12T08:00:00.000Z'

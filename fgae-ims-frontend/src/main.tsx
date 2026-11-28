@@ -1,3 +1,4 @@
+import './styles/review.css'
 import './styles/areas.css'
 import './styles/user-access.css'
 import { portfolioKinds, portfolioPath } from './services/contracts/portfolio'
@@ -42,11 +43,15 @@ const facilityRoute = /^\/facilities\/([^/]+)(\/edit)?$/.exec(window.location.pa
 let facilityId: string | undefined
 if (facilityRoute && facilityRoute[1] !== 'new') { try { facilityId = decodeURIComponent(facilityRoute[1]!) } catch { facilityId = 'invalid-path' } }
 const facilityPage = window.location.pathname === '/facilities' ? 'facilities-list' : window.location.pathname === '/facilities/new' ? 'facilities-create' : facilityRoute && facilityId ? facilityRoute[2] ? 'facilities-edit' : 'facilities-detail' : undefined
-const page = facilityPage ?? branchPage ?? areaPage ?? accessPage ?? portfolioPage ?? participantPage ?? managerPage ?? (window.location.pathname === '/workspaces/hr' ? 'hr' : window.location.pathname === '/workspaces/super-admin' ? 'overview' : window.location.pathname === '/account' ? 'account' : window.location.pathname === '/my-application/edit' ? 'corrections' : window.location.pathname === '/my-application' ? 'application' : window.location.pathname === '/register' ? 'register' : window.location.pathname === '/first-login' ? 'first' : window.location.pathname === '/reset-password' ? 'reset' : window.location.pathname === '/forgot-password' ? 'recovery' : 'sign-in')
-const protectedEntry = !facilityPage && !branchPage && !areaPage && !accessPage && !portfolioPage && !participantPage && !managerPage && !['/', '/sign-in', '/forgot-password', '/reset-password', '/first-login', '/register', '/my-application', '/my-application/edit', '/account', '/workspaces/super-admin', '/workspaces/hr'].includes(window.location.pathname)
+const reviewRoute = /^\/applications(?:\/([^/]+))?$/.exec(window.location.pathname)
+let reviewId: string | undefined
+if (reviewRoute?.[1]) { try { reviewId=decodeURIComponent(reviewRoute[1]) } catch { reviewId='invalid-path' } }
+const reviewPage = window.location.pathname === '/volunteers/register' ? 'staff-register' : reviewRoute ? 'review-applications' : undefined
+const page = reviewPage ?? facilityPage ?? branchPage ?? areaPage ?? accessPage ?? portfolioPage ?? participantPage ?? managerPage ?? (window.location.pathname === '/workspaces/hr' ? 'hr' : window.location.pathname === '/workspaces/super-admin' ? 'overview' : window.location.pathname === '/account' ? 'account' : window.location.pathname === '/my-application/edit' ? 'corrections' : window.location.pathname === '/my-application' ? 'application' : window.location.pathname === '/register' ? 'register' : window.location.pathname === '/first-login' ? 'first' : window.location.pathname === '/reset-password' ? 'reset' : window.location.pathname === '/forgot-password' ? 'recovery' : 'sign-in')
+const protectedEntry = !reviewPage && !facilityPage && !branchPage && !areaPage && !accessPage && !portfolioPage && !participantPage && !managerPage && !['/', '/sign-in', '/forgot-password', '/reset-password', '/first-login', '/register', '/my-application', '/my-application/edit', '/account', '/workspaces/super-admin', '/workspaces/hr'].includes(window.location.pathname)
 // C-AUTH-06: the email link carries a fragment token, consumed into memory and removed from history.
 const resetTokens = page === 'reset' ? new URLSearchParams(window.location.hash.slice(1)).getAll('token') : []
 const resetToken = resetTokens.length === 1 && resetTokens[0]!.length <= 2048 ? resetTokens[0]! : ''
 if (page === 'reset') history.replaceState(null, '', '/reset-password')
 if (page === 'sign-in' && window.location.pathname !== '/sign-in') history.replaceState(null, '', '/sign-in')
-createRoot(document.getElementById('root')!).render(<StrictMode><LocaleProvider><App facilityId={facilityId} branchId={branchId} areaId={areaId} accessId={accessId} page={page} protectedEntry={protectedEntry} resetToken={resetToken} /></LocaleProvider></StrictMode>)
+createRoot(document.getElementById('root')!).render(<StrictMode><LocaleProvider><App reviewId={reviewId} facilityId={facilityId} branchId={branchId} areaId={areaId} accessId={accessId} page={page} protectedEntry={protectedEntry} resetToken={resetToken} /></LocaleProvider></StrictMode>)

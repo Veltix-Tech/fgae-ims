@@ -96,6 +96,7 @@ export const am: Record<TranslationKey, string> = {
   signOut: 'ውጣ', signingOut: 'በመውጣት ላይ…', logoutFailed: 'መውጣትን ማጠናቀቅ አልቻልንም. እባክዎ እንደገና ይሞክሩ.',
   accountLabel: 'የገባው መለያ', rolesLabel: 'የመለያ ሚናዎች', sessionNotice: 'መለያዎን ለመጠቀም ይግቡ.',
   sessionLost: 'ክፍለ ጊዜዎ ተቀይሯል. ለመቀጠል እንደገና ይግቡ.', title: 'መግቢያ · FGAE IMS',
+  reviewNav: 'የማመልከቻ ግምገማ', staffNav: 'በጎ ፈቃደኛ ይመዝግቡ',
   SUPER_ADMIN: 'ዋና አስተዳዳሪ', HR: 'የሰው ኃይል', AREA_MANAGER: 'የክልል ሥራ አስኪያጅ', BRANCH_MANAGER: 'የቅርንጫፍ ሥራ አስኪያጅ',
   VOLUNTEER_MANAGER: 'የበጎ ፈቃደኞች አስተዳዳሪ', FIELD_SUPERVISOR: 'የመስክ ተቆጣጣሪ', FINANCE_OFFICER: 'የፋይናንስ ኦፊሰር',
   VOLUNTEER: 'በጎ ፈቃደኛ', PROJECT_MANAGER: 'የፕሮጀክት ሥራ አስኪያጅ', MEMBER: 'አባል',

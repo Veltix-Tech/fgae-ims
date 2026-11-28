@@ -54,3 +54,5 @@ declare module '@areas-adapter' { export const areaService: import('./services/c
 declare module '@branches-adapter' { export const branchService: import('./services/contracts/branches').BranchService }
 
 declare module '@facilities-adapter' { export const facilityService: import('./services/contracts/facilities').FacilityService }
+
+declare module '@review-adapter' { export const reviewService: import('./services/contracts/review').ReviewService }

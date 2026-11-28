@@ -1,3 +1,4 @@
+import { RegistrationError, type RegistrationErrorCode } from '../contracts/registration'
 import { AreaError, areaCodes, type AreaInput } from '../contracts/areas'
 import { AccessError, accessCodes, type AccessInput } from '../contracts/user-access'
 import { portfolioPath, type PortfolioKind } from '../contracts/portfolio'
@@ -203,9 +204,10 @@ export class AuthClient {
   async accountRequest(suffix: string, method: string, body?: unknown, signal?: AbortSignal, options: { key?: string; progress?: (percent: number) => void; blob?: boolean } = {}) {
     return this.featureRequest('account', suffix, method, body, signal, options)
   }
-  private async featureRequest(feature: 'account' | 'corrections', suffix: string, method: string, body?: unknown, signal?: AbortSignal, options: { key?: string; progress?: (percent: number) => void; blob?: boolean } = {}) {
+  async reviewRequest(suffix: string, method: string, body?: unknown, signal?: AbortSignal, options: { key?: string; progress?: (percent: number) => void; blob?: boolean } = {}) { return this.featureRequest('review', suffix, method, body, signal, options) }
+  private async featureRequest(feature: 'review' | 'account' | 'corrections', suffix: string, method: string, body?: unknown, signal?: AbortSignal, options: { key?: string; progress?: (percent: number) => void; blob?: boolean } = {}) {
     const generation = this.generation
-    const path = feature === 'account' ? `/account/me${suffix}` : `/volunteers/applications/me/corrections${suffix}`
+    const path = feature === 'review' ? `/volunteers/review${suffix}` : feature === 'account' ? `/account/me${suffix}` : `/volunteers/applications/me/corrections${suffix}`
     const send = () => body instanceof FormData ? new Promise<Response>((resolve, reject) => {
       const xhr = new XMLHttpRequest(); xhr.open(method, `${this.baseUrl}${path}`); xhr.withCredentials = true; xhr.responseType = 'blob'
       if (this.accessToken) xhr.setRequestHeader('Authorization', `Bearer ${this.accessToken}`)
@@ -223,7 +225,12 @@ export class AuthClient {
     if (generation !== this.generation) throw new CorrectionError('SESSION_EXPIRED')
     if (!response.ok) {
       const dto = await response.json().catch(() => null) as { code?: typeof correctionCodes[number]; fields?: Record<string, string> } | null
-      if (feature === 'account') {
+      if (feature === 'review') {
+        const code = String(dto?.code ?? '')
+        if (['EMAIL_IN_USE','DOCUMENT_MISSING','CONFIG_CHANGED','FILE_TYPE','FILE_SIZE'].includes(code)) throw new RegistrationError(code as RegistrationErrorCode)
+        throw new AreaError(response.status===401?'SESSION_EXPIRED':response.status===403?'FORBIDDEN':response.status===404?'NOT_FOUND':response.status===409?'CONFLICT':areaCodes.includes(code as typeof areaCodes[number])?code as typeof areaCodes[number]:'UNAVAILABLE')
+        }
+        if (feature === 'account') {
         const code = dto?.code as typeof accountCodes[number] | undefined
         throw new AccountError(response.status === 401 ? 'SESSION_EXPIRED' : response.status === 403 ? 'FORBIDDEN' : code && accountCodes.includes(code) ? code : response.status === 409 ? 'CONFLICT' : response.status === 429 ? 'RATE_LIMITED' : 'UNAVAILABLE')
       }
