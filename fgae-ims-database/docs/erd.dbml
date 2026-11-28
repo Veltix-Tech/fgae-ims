@@ -1,0 +1,149 @@
+Table persons {
+  id uuid [pk, default: `gen_random_uuid()`]
+  first_name varchar(50) [not null]
+  last_name varchar(50) [not null]
+  grand_father_name varchar(50)
+  phone varchar(20) [not null, unique]
+  email varchar(100) [unique]
+  gender varchar(10) [not null, note: 'CHECK MALE or FEMALE']
+  date_of_birth date
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table users {
+  id uuid [pk, default: `gen_random_uuid()`]
+  person_id uuid [not null, ref: - persons.id]
+  email varchar(100) [not null, unique]
+  password_hash varchar(255) [not null]
+  status varchar(20) [not null, default: 'INVITED', note: 'INVITED, ACTIVE, INACTIVE, SUSPENDED']
+  primary_unit_id uuid [ref: > organization_units.id]
+  last_login_at timestamptz
+}
+
+Table sessions {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > users.id, note: 'ON DELETE CASCADE']
+  token_hash varchar(255) [not null, unique]
+  ip_address varchar(45)
+  expires_at timestamptz [not null]
+  revoked_at timestamptz
+  user_agent varchar(255)
+}
+
+Table organization_units {
+  id uuid [pk, default: `gen_random_uuid()`]
+  name varchar(100) [not null]
+  code varchar(20) [not null, unique]
+  type varchar(30) [not null, note: 'HEAD_OFFICE, AREA_OFFICE, BRANCH, HEALTH_FACILITY']
+  parent_id uuid [ref: > organization_units.id, note: 'null for Head Office']
+  status varchar(20) [not null, default: 'ACTIVE']
+}
+
+Table volunteers {
+  id uuid [pk, default: `gen_random_uuid()`]
+  person_id uuid [not null, ref: - persons.id]
+  volunteer_number varchar(30) [not null, unique]
+  branch_id uuid [not null, ref: > organization_units.id]
+  status varchar(20) [not null, default: 'PENDING']
+  membership_status varchar(20) [not null, default: 'NOT_A_MEMBER']
+  registered_at timestamptz [not null, default: `now()`]
+}
+
+Table volunteer_assignments {
+  id uuid [pk, default: `gen_random_uuid()`]
+  volunteer_id uuid [not null, ref: > volunteers.id]
+  project_id uuid [not null, ref: > projects.id]
+  location_unit_id uuid [not null, ref: > organization_units.id]
+  supervisor_id uuid [not null, ref: > users.id]
+  start_date date [not null]
+  end_date date
+  status varchar(20) [not null, default: 'ACTIVE']
+}
+
+Table volunteer_attendance {
+  id uuid [default: `gen_random_uuid()`]
+  assignment_id uuid [not null, ref: > volunteer_assignments.id]
+  activity_date date [not null]
+  check_in time
+  check_out time
+  latitude numeric(10,7)
+  longitude numeric(10,7)
+  status varchar(20) [not null, default: 'PRESENT']
+  verification_status varchar(20) [not null, default: 'PENDING']
+  verified_by_id uuid [ref: > users.id]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (id, activity_date) [pk]
+  }
+  note: 'Partitioned monthly by activity_date'
+}
+
+Table payment_transactions {
+  id uuid [pk, default: `gen_random_uuid()`]
+  fee_type varchar(30) [not null, note: 'VOLUNTEER_REGISTRATION, MEMBERSHIP_DUES']
+  related_app_id uuid [note: 'No FK yet: applications table is undefined']
+  amount numeric(12,2) [not null, note: 'CHECK amount > 0']
+  payment_method varchar(30) [not null]
+  provider_reference varchar(100) [unique]
+  idempotency_key varchar(100) [unique]
+  status varchar(20) [not null, default: 'PENDING']
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table allowance_requests {
+  id uuid [pk, default: `gen_random_uuid()`]
+  volunteer_id uuid [not null, ref: > volunteers.id]
+  project_id uuid [not null, ref: > projects.id]
+  budget_allocation_id uuid [not null, ref: > project_budget_allocations.id]
+  amount numeric(12,2) [not null, note: 'CHECK amount > 0']
+  status varchar(20) [not null, default: 'DRAFT', note: 'DRAFT, SUBMITTED, VERIFIED, APPROVED, PROCESSING, PAID, FAILED']
+  reason varchar(255)
+  requested_by_id uuid [not null, ref: > users.id]
+  approved_by_id uuid [ref: > users.id]
+}
+
+Table allowance_disbursements {
+  id uuid [pk, default: `gen_random_uuid()`]
+  allowance_request_id uuid [not null, ref: > allowance_requests.id]
+  disbursement_method varchar(30) [not null]
+  recipient_phone varchar(20) [not null]
+  provider_txn_id varchar(100) [unique]
+  idempotency_key varchar(100) [not null, unique]
+  status varchar(20) [not null, default: 'PROCESSING']
+  executed_at timestamptz [not null, default: `now()`]
+  note: 'Immutable: never updated or deleted'
+}
+
+// STUBS: the documents never define these. You will complete them in Step 4.
+Table projects {
+  id uuid [pk, default: `gen_random_uuid()`]
+  name varchar(150) [not null]
+  start_date date
+  end_date date
+  status varchar(20) [not null, default: 'DRAFT']
+}
+
+Table project_budget_allocations {
+  id uuid [pk, default: `gen_random_uuid()`]
+  project_id uuid [not null, ref: > projects.id]
+  budget_code varchar(50) [not null]
+  amount numeric(12,2) [not null]
+  currency varchar(3) [not null, default: 'ETB']
+  status varchar(20) [not null, default: 'APPROVED']
+}
+Table roles {
+  id uuid [pk, default: `gen_random_uuid()`]
+  code varchar(50) [not null, unique, note: 'e.g. VOLUNTEER_MANAGER']
+  name varchar(100) [not null]
+}
+
+Table user_roles {
+  user_id uuid [not null, ref: > users.id]
+  role_id uuid [not null, ref: > roles.id]
+  unit_id uuid [not null, ref: > organization_units.id]
+
+  indexes {
+    (user_id, role_id, unit_id) [pk]
+  }
+}
